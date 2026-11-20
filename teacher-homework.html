@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="教师作业批改工作台：上传作业图片，调用 DeepSeek 多模态批改，生成逐题解析、优秀答案与班级共性分析。">
+  <title>作业批改 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <div class="page-head">
+      <div>
+        <nav class="breadcrumbs" aria-label="面包屑"><a href="teacher-dashboard.html">教师工作台</a><span>/</span><span>作业与评价</span></nav>
+        <h1>作业批改工作台</h1>
+        <p>上传学生作业照片，由 DeepSeek 多模态接口完成等级评定、三维度评语与逐题解析；未配置 API Key 时自动使用演示数据，保证全流程可演示。</p>
+      </div>
+      <div class="page-head-actions">
+        <a class="btn btn-ghost btn-sm" href="common-issues.html">共性分析报告</a>
+        <a class="btn btn-ghost btn-sm" href="excellent-answers.html">优秀答案墙</a>
+        <a class="btn btn-ghost btn-sm" href="settings.html">API 设置</a>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-icon">◷</span><div><strong id="statPending">0</strong><small>待批改作业</small></div></div>
+      <div class="stat-card"><span class="stat-icon">✓</span><div><strong id="statGraded">0</strong><small>已批改作业</small></div></div>
+      <div class="stat-card"><span class="stat-icon">★</span><div><strong id="statExcellent">0</strong><small>优秀答案展示</small></div></div>
+      <div class="stat-card"><span class="stat-icon">◫</span><div><strong id="statStudents">0</strong><small>班级学生</small></div></div>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:18px;">
+      <div class="span-2 stack">
+        <section class="card" id="gradingPanel">
+          <div class="card-header">
+            <div><h2>上传与批改</h2><p>支持 JPG / PNG 作业照片；PDF 仅记录文件名，演示版优先按图片批改。</p></div>
+            <span class="tag tag-blue" id="apiBadge">检测中</span>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-warning" id="queueNotice" style="display:none;"></div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="studentSelect">学生</label>
+                <select class="input" id="studentSelect"></select>
+              </div>
+              <div class="field">
+                <label for="batchSelect">作业批次</label>
+                <select class="input" id="batchSelect"></select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="selfReport">学生自述（选填）</label>
+              <textarea class="input" id="selfReport" rows="2" placeholder="例如：这次重点检查了离子方程式的拆分，计算题写出了完整步骤。"></textarea>
+              <small class="field-hint">自述会随作业一起送入批改要求，帮助 AI 关注学生的自我反思。</small>
+            </div>
+
+            <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="选择或拖入作业图片">
+              <span class="upload-icon">⇪</span>
+              <h3>拖入作业照片，或点击选择文件</h3>
+              <p>JPG / PNG 图片会压缩后发送给多模态接口；PDF 仅记录文件名，若接口不支持将提示改用图片。</p>
+              <input type="file" id="fileInput" accept="image/jpeg,image/png,application/pdf" hidden>
+            </div>
+            <div id="filePreview"></div>
+
+            <div class="alert alert-info" style="margin-top:14px;">
+              <span class="alert-icon">i</span>
+              <div><strong>化学学科批改约束已写入提示词：</strong>区分“→ / ⇌ / =”；化学式正确但配平错误判“部分正确”并标“配平错误”；计算题按步骤给分；手写识别不确定处标【识别存疑：xxx】。</div>
+            </div>
+
+            <div class="form-actions" style="margin-top:16px;">
+              <button class="btn btn-primary" type="button" id="gradeAI">开始 AI 多模态批改</button>
+              <button class="btn btn-secondary" type="button" id="gradeDemo">使用演示数据批改</button>
+              <a class="btn btn-ghost" href="settings.html">配置 API Key</a>
+            </div>
+            <p class="small muted" style="margin:10px 0 0;">未填写 Key、接口失败或勾选“仅使用演示数据”时，页面会自动回退到预置结果，并在结果顶部注明来源。教师应对 AIGC 结果进行人工复核。</p>
+
+            <div class="progress-card" id="progressCard">
+              <div class="progress-head"><span id="progressLabel">准备批改</span><span id="progressPercent">0%</span></div>
+              <div class="progress-bar"><span id="progressBar" style="width:8%"></span></div>
+              <div class="progress-steps"><span>读取图片</span><span>识别题目</span><span>学科判定</span><span>生成评语</span><span>写入档案</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="resultSection" style="margin-top:0;">
+          <div class="section-head">
+            <div><h2>批改结果</h2><p>等级、三维度评语、整体评价、逐题解析与薄弱点；优秀题目可一键加入匿名答案墙。</p></div>
+            <div class="page-head-actions">
+              <button class="btn btn-ghost btn-sm" type="button" id="printResult" style="display:none;">打印 / 导出 PDF</button>
+              <a class="btn btn-ghost btn-sm" href="excellent-answers.html">优秀答案墙 →</a>
+            </div>
+          </div>
+          <div id="resultBox">
+            <div class="card"><div class="empty-state"><div class="empty-icon">✎</div><h3>等待一份作业</h3><p>上传作业照片并开始批改，或从右侧待批改队列中载入一份提交，即可查看完整结果。</p></div></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <div class="card-header"><div><h2>待批改队列</h2><p>学生端提交后自动进入队列。</p></div><span class="tag tag-amber" id="pendingBadge">0 份</span></div>
+          <div class="card-body" id="pendingQueue"><p class="small muted" style="margin:0;">正在读取队列。</p></div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><div><h2>班级共性分析</h2><p>勾选至少 2 份同班已批改作业。</p></div><a class="section-link" href="common-issues.html">报告 →</a></div>
+          <div class="card-body">
+            <div id="analysisList" style="max-height:300px;overflow:auto;"></div>
+            <div class="form-actions" style="margin-top:12px;">
+              <button class="btn btn-secondary btn-sm" type="button" id="selectAllAnalysis">全选 / 取消</button>
+              <button class="btn btn-primary btn-sm" type="button" id="generateReport" disabled>生成共性报告</button>
+            </div>
+            <p class="small muted" style="margin:10px 0 0;" id="analysisCount">已选择 0 份</p>
+            <div id="latestReport" class="small muted" style="margin-top:8px;"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><div><h2>批改提示</h2><p>让 AI 结果更贴近真实课堂。</p></div></div>
+          <div class="card-body">
+            <ul class="plain-list">
+              <li>照片尽量正对作业、光线均匀，题干与作答完整入镜。</li>
+              <li>一次上传一份作业，避免多份作业互相干扰。</li>
+              <li>AI 结果需教师复核，尤其是手写识别存疑处。</li>
+              <li>优秀答案会匿名展示，请确认已获得学生授权。</li>
+            </ul>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ role: 'teacher', active: 'homework', title: '作业批改 · 知行化学' });
+      if (!user) return;
+
+      var className = user.className || CH.DEMO_CLASS;
+      var students = CH.getClassStudents(className).slice().sort(function (a, b) { return a.studentId.localeCompare(b.studentId); });
+      var state = {
+        batchId: CH.BATCHES[0] ? CH.BATCHES[0].id : '',
+        studentId: students[0] ? students[0].studentId : '',
+        file: null,
+        fileKind: '',
+        dataUrl: '',
+        currentSubmission: null,
+        viewingSubmission: null,
+        busy: false,
+        fileToken: 0,
+        progressTimer: null
+      };
+
+      var studentSelect = document.getElementById('studentSelect');
+      var batchSelect = document.getElementById('batchSelect');
+      var selfReport = document.getElementById('selfReport');
+      var fileInput = document.getElementById('fileInput');
+      var uploadZone = document.getElementById('uploadZone');
+      var previewBox = document.getElementById('filePreview');
+      var resultBox = document.getElementById('resultBox');
+      var queueNotice = document.getElementById('queueNotice');
+      var progressCard = document.getElementById('progressCard');
+      var gradeAI = document.getElementById('gradeAI');
+      var gradeDemo = document.getElementById('gradeDemo');
+      var printResult = document.getElementById('printResult');
+
+      function selectedStudent() {
+        return students.filter(function (item) { return item.studentId === state.studentId; })[0] || null;
+      }
+
+      function selectedBatch() {
+        return CH.BATCHES.filter(function (item) { return item.id === state.batchId; })[0] || null;
+      }
+
+      function initSelects() {
+        studentSelect.innerHTML = students.length ? students.map(function (item) {
+          return '<option value="' + CH.escapeHTML(item.studentId) + '">' + CH.escapeHTML(item.name) + ' · ' + CH.escapeHTML(item.studentId) + '</option>';
+        }).join('') : '<option value="">暂无学生</option>';
+        batchSelect.innerHTML = CH.BATCHES.map(function (item) {
+          return '<option value="' + CH.escapeHTML(item.id) + '">' + CH.escapeHTML(item.name) + ' · ' + CH.escapeHTML(item.unit) + '</option>';
+        }).join('');
+        studentSelect.value = state.studentId;
+        batchSelect.value = state.batchId;
+      }
+
+      function updateApiBadge() {
+        var settings = CH.getSettings();
+        var badge = document.getElementById('apiBadge');
+        if (settings.forceDemo) {
+          badge.className = 'tag tag-amber';
+          badge.textContent = '仅演示数据';
+        } else if (settings.apiKey) {
+          badge.className = 'tag tag-green';
+          badge.textContent = 'API 已配置 · ' + settings.model;
+        } else {
+          badge.className = 'tag tag-gray';
+          badge.textContent = '未配置 Key · 自动演示';
+        }
+      }
+
+      function renderStats() {
+        var subs = CH.getSubmissions().filter(function (item) { return item.className === className; });
+        var pending = subs.filter(function (item) { return item.status === 'pending'; });
+        var graded = subs.filter(function (item) { return item.status === 'graded' && item.result; });
+        document.getElementById('statPending').textContent = pending.length;
+        document.getElementById('statGraded').textContent = graded.length;
+        document.getElementById('statExcellent').textContent = CH.getActiveExcellent().length;
+        document.getElementById('statStudents').textContent = students.length;
+        document.getElementById('pendingBadge').textContent = pending.length + ' 份';
+      }
+
+      function renderPreview() {
+        previewBox.innerHTML = '';
+        if (!state.file) return;
+        var thumb = state.dataUrl
+          ? '<img src="' + state.dataUrl + '" alt="作业图片预览">'
+          : '<div class="file-placeholder">PDF</div>';
+        var kindText = state.fileKind === 'pdf' ? 'PDF 文件 · 仅记录文件名，调用 AI 前请改用 JPG/PNG 图片' : '图片已压缩，可发送给多模态接口';
+        previewBox.innerHTML = '<div class="file-preview">' + thumb + '<div class="file-info"><strong>' + CH.escapeHTML(state.file.name) + '</strong><small>' + CH.escapeHTML(kindText) + '</small></div><button class="btn btn-ghost btn-sm file-remove" type="button" data-remove-file>移除</button></div>';
+      }
+
+      previewBox.addEventListener('click', function (event) {
+        if (!event.target.closest('[data-remove-file]')) return;
+        state.file = null;
+        state.fileKind = '';
+        state.dataUrl = '';
+        fileInput.value = '';
+        renderPreview();
+      });
+
+      function acceptFile(file) {
+        if (!file) return;
+        var name = String(file.name || '');
+        var isImage = /^image\/(jpeg|png|webp)$/i.test(file.type) || /\.(jpe?g|png)$/i.test(name);
+        var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(name);
+        if (!isImage && !isPdf) {
+          CH.toast('仅支持 JPG / PNG 图片或 PDF 文件。', 'error');
+          return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+          CH.toast('文件超过 20MB，请压缩后重试。', 'error');
+          return;
+        }
+        state.file = file;
+        state.fileKind = isPdf ? 'pdf' : 'image';
+        state.dataUrl = '';
+        var token = ++state.fileToken;
+        renderPreview();
+        if (isPdf) {
+          CH.toast('已记录 PDF 文件名。演示版优先按图片批改，调用 AI 前请上传 JPG/PNG。', 'warning');
+          return;
+        }
+        CH.compressImage(file, 1600, 0.86).then(function (out) {
+          if (token !== state.fileToken) return;
+          state.dataUrl = out.dataUrl;
+          renderPreview();
+          CH.toast('图片已压缩至 ' + out.width + ' × ' + out.height + '，可以开始批改。', 'success');
+        }).catch(function (error) {
+          if (token !== state.fileToken) return;
+          state.file = null;
+          state.fileKind = '';
+          renderPreview();
+          CH.toast(error.message || '图片读取失败，请重试。', 'error');
+        });
+      }
+
+      uploadZone.addEventListener('click', function (event) {
+        if (event.target === fileInput) return;
+        fileInput.click();
+      });
+      uploadZone.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          fileInput.click();
+        }
+      });
+      fileInput.addEventListener('click', function (event) { event.stopPropagation(); });
+      fileInput.addEventListener('change', function () {
+        acceptFile(fileInput.files && fileInput.files[0]);
+      });
+      ['dragenter', 'dragover'].forEach(function (name) {
+        uploadZone.addEventListener(name, function (event) {
+          event.preventDefault();
+          uploadZone.classList.add('is-dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach(function (name) {
+        uploadZone.addEventListener(name, function (event) {
+          event.preventDefault();
+          uploadZone.classList.remove('is-dragover');
+        });
+      });
+      uploadZone.addEventListener('drop', function (event) {
+        var file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+        acceptFile(file);
+      });
+
+      function startProgress(label) {
+        progressCard.classList.add('is-visible');
+        document.getElementById('progressLabel').textContent = label;
+        document.getElementById('progressPercent').textContent = '12%';
+        document.getElementById('progressBar').style.width = '12%';
+        var percent = 12;
+        clearInterval(state.progressTimer);
+        state.progressTimer = setInterval(function () {
+          percent = Math.min(88, percent + Math.max(1, Math.round((90 - percent) / 6)));
+          document.getElementById('progressPercent').textContent = percent + '%';
+          document.getElementById('progressBar').style.width = percent + '%';
+        }, 650);
+      }
+
+      function finishProgress(label) {
+        clearInterval(state.progressTimer);
+        document.getElementById('progressLabel').textContent = label || '批改完成';
+        document.getElementById('progressPercent').textContent = '100%';
+        document.getElementById('progressBar').style.width = '100%';
+        setTimeout(function () {
+          if (!state.busy) progressCard.classList.remove('is-visible');
+        }, 1400);
+      }
+
+      function setBusy(busy) {
+        state.busy = busy;
+        gradeAI.disabled = busy;
+        gradeDemo.disabled = busy;
+        gradeAI.textContent = busy ? '正在批改…' : '开始 AI 多模态批改';
+        gradeDemo.textContent = busy ? '请稍候…' : '使用演示数据批改';
+      }
+
+      function showQueueNotice(text) {
+        if (!text) {
+          queueNotice.style.display = 'none';
+          queueNotice.innerHTML = '';
+          return;
+        }
+        queueNotice.style.display = 'block';
+        queueNotice.innerHTML = '<span class="alert-icon">i</span><div><strong>队列作业已载入：</strong>' + text + '</div>';
+      }
+
+      function syncQueueWithForm() {
+        if (!state.currentSubmission) return;
+        if (state.currentSubmission.studentId !== state.studentId || state.currentSubmission.batchId !== state.batchId) {
+          state.currentSubmission = null;
+          showQueueNotice('');
+        }
+      }
+
+      studentSelect.addEventListener('change', function () {
+        state.studentId = studentSelect.value;
+        syncQueueWithForm();
+      });
+      batchSelect.addEventListener('change', function () {
+        state.batchId = batchSelect.value;
+        syncQueueWithForm();
+      });
+
+      function loadPending(submission) {
+        state.currentSubmission = submission;
+        state.studentId = submission.studentId;
+        state.batchId = submission.batchId;
+        studentSelect.value = state.studentId;
+        batchSelect.value = state.batchId;
+        selfReport.value = submission.selfReport || '';
+        showQueueNotice(CH.escapeHTML(submission.studentName) + ' · ' + CH.escapeHTML(submission.batchName) + ' · 提交于 ' + CH.formatDate(submission.submittedAt, true) + '。上传该生作业图片后开始批改，或直接用演示数据生成结果。');
+        document.getElementById('gradingPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        CH.toast('已载入 ' + submission.studentName + ' 的待批改作业。', 'info');
+      }
+
+      function renderPending() {
+        var pending = CH.getSubmissions().filter(function (item) {
+          return item.className === className && item.status === 'pending';
+        }).sort(function (a, b) { return new Date(b.submittedAt) - new Date(a.submittedAt); });
+        var box = document.getElementById('pendingQueue');
+        if (!pending.length) {
+          box.innerHTML = '<div class="empty-state" style="padding:22px 12px;"><div class="empty-icon">✓</div><h3>队列已清空</h3><p>学生提交新作业后会出现在这里。</p></div>';
+          return;
+        }
+        box.innerHTML = '<div class="pending-list">' + pending.map(function (item) {
+          return '<div class="pending-item"><div class="pending-main"><strong>' + CH.escapeHTML(item.studentName) + '<span class="tag tag-amber">待批改</span></strong><p>' + CH.escapeHTML(item.batchName) + ' · ' + CH.formatDate(item.submittedAt, true) + '</p><p class="small muted">' + (item.selfReport ? CH.escapeHTML(CH.truncate(item.selfReport, 46)) : '学生未填写自述') + '</p></div><button class="btn btn-secondary btn-sm" type="button" data-pending="' + CH.escapeHTML(item.id) + '">载入批改</button></div>';
+        }).join('') + '</div>';
+      }
+
+      document.getElementById('pendingQueue').addEventListener('click', function (event) {
+        var button = event.target.closest('[data-pending]');
+        if (!button) return;
+        var submission = CH.getSubmissionById(button.getAttribute('data-pending'));
+        if (submission) loadPending(submission);
+      });
+
+      function renderAnalysisList() {
+        var graded = CH.getSubmissions().filter(function (item) {
+          return item.className === className && item.status === 'graded' && item.result;
+        }).sort(function (a, b) { return new Date(b.gradedAt || b.submittedAt) - new Date(a.gradedAt || a.submittedAt); });
+        var box = document.getElementById('analysisList');
+        if (!graded.length) {
+          box.innerHTML = '<p class="small muted" style="margin:0;">还没有已批改作业。</p>';
+        } else {
+          box.innerHTML = graded.map(function (item) {
+            return '<label class="check-row"><input type="checkbox" value="' + CH.escapeHTML(item.id) + '"><span><strong>' + CH.escapeHTML(item.studentName) + '</strong> · ' + CH.escapeHTML(item.batchName) + '<small class="muted">' + CH.formatDate(item.gradedAt, false) + '</small></span><span class="grade-badge ' + CH.gradeClass(item.result.grade) + '">' + CH.escapeHTML(item.result.grade) + '</span></label>';
+          }).join('');
+        }
+        var reports = CH.getReports().filter(function (item) { return item.className === className; });
+        document.getElementById('latestReport').innerHTML = reports.length
+          ? '最近报告：' + CH.escapeHTML(CH.formatDate(reports[0].createdAt, true)) + ' · <a href="common-issues.html?report=' + encodeURIComponent(reports[0].id) + '">查看</a>'
+          : '尚未生成班级报告。';
+        updateAnalysisSelection();
+      }
+
+      function updateAnalysisSelection() {
+        var checked = document.querySelectorAll('#analysisList input[type="checkbox"]:checked');
+        document.getElementById('analysisCount').textContent = '已选择 ' + checked.length + ' 份（至少 2 份）';
+        document.getElementById('generateReport').disabled = checked.length < 2 || state.busy;
+      }
+
+      document.getElementById('analysisList').addEventListener('change', updateAnalysisSelection);
+      document.getElementById('selectAllAnalysis').addEventListener('click', function () {
+        var checks = document.querySelectorAll('#analysisList input[type="checkbox"]');
+        var allChecked = Array.prototype.every.call(checks, function (item) { return item.checked; });
+        Array.prototype.forEach.call(checks, function (item) { item.checked = !allChecked; });
+        updateAnalysisSelection();
+      });
+      document.getElementById('generateReport').addEventListener('click', function () {
+        var ids = Array.prototype.map.call(document.querySelectorAll('#analysisList input[type="checkbox"]:checked'), function (item) { return item.value; });
+        if (ids.length < 2) { CH.toast('请至少选择 2 份已批改作业。', 'warning'); return; }
+        try {
+          var report = CH.generateCommonReport(ids);
+          CH.toast('已生成班级共性分析报告。', 'success');
+          setTimeout(function () { location.href = 'common-issues.html?report=' + encodeURIComponent(report.id); }, 380);
+        } catch (error) {
+          CH.toast(error.message || '生成报告失败。', 'error');
+        }
+      });
+
+      function dimensionHTML(label, data) {
+        var score = Math.max(0, Math.min(100, Number(data && data.score) || 0));
+        return '<div class="dimension-card"><div class="dimension-top"><strong>' + label + '</strong><span>' + score + '</span></div><div class="dimension-bar"><span style="width:' + score + '%"></span></div><p>' + CH.escapeHTML((data && data.comment) || '暂无评语。') + '</p></div>';
+      }
+
+      function renderResult(submission, fallbackNote) {
+        if (!submission || !submission.result) return;
+        state.viewingSubmission = submission;
+        var data = submission.result;
+        var score = Math.max(0, Math.min(100, Number(data.score) || 0));
+        var grade = data.grade || CH.gradeFromScore(score);
+        var sourceText = data.isMock
+          ? (data.fallbackReason ? '接口未就绪，已自动切换演示数据' : '预置演示批改数据')
+          : ('DeepSeek 多模态 · ' + (data.model || CH.getSettings().model));
+        var fallback = fallbackNote || data.fallbackReason || '';
+        var dims = data.dimensions || {};
+        var questions = Array.isArray(data.questions) ? data.questions : [];
+        var weakTags = Array.isArray(data.weakTags) ? data.weakTags : [];
+        var studentLink = 'student-profile.html?studentId=' + encodeURIComponent(submission.studentId);
+        var questionsHTML = questions.map(function (q) {
+          var existing = CH.findExcellent(submission.id, q.no);
+          var active = existing && existing.active;
+          var errorTag = q.errorType ? '<span class="tag tag-red">' + CH.escapeHTML(q.errorType) + '</span>' : '';
+          var weakTag = q.tag ? '<span class="tag tag-weak">' + CH.escapeHTML(q.tag) + '</span>' : '';
+          return '<article class="question-card"><div class="question-top"><span class="question-no">' + CH.escapeHTML(String(q.no)) + '</span><div class="question-heading"><p class="question-text">' + CH.escapeHTML(q.question) + '</p><div class="question-badges"><span class="verdict ' + CH.verdictClass(q.verdict) + '">' + CH.escapeHTML(q.verdict) + '</span>' + errorTag + weakTag + '</div></div></div><div class="question-body"><div class="qa-block"><span class="qa-label">学生作答</span><p class="qa-text">' + CH.escapeHTML(q.studentAnswer) + '</p></div><div class="qa-block"><span class="qa-label">判定依据</span><p class="qa-text">' + CH.escapeHTML(q.reason) + '</p></div><div class="analysis-grid"><div class="analysis-block wrong-cause"><span class="qa-label">错因分析</span><p class="qa-text">' + CH.escapeHTML(q.reason) + '</p></div><div class="analysis-block correct-way"><span class="qa-label">正确思路</span><p class="qa-text">' + CH.escapeHTML(q.correctApproach) + '</p></div></div><div class="excellent-bar"><span class="small muted">' + (active ? '已匿名展示在优秀答案墙' : '认为这道题可作为班级示范？') + '</span><button class="star-button ' + (active ? 'is-active' : '') + '" type="button" data-excellent="' + CH.escapeHTML(String(q.no)) + '" data-active="' + (active ? '1' : '0') + '">' + (active ? '★ 已展示 · 取消展示' : '☆ 标记为优秀答案') + '</button></div></div></article>';
+        }).join('');
+
+        resultBox.innerHTML = '<div class="result-shell">' +
+          (fallback ? '<div class="alert alert-warning"><span class="alert-icon">i</span><div><strong>这次没有真正批改你上传的图片：</strong>' + CH.escapeHTML(fallback) + ' 系统已用演示数据补位，保证流程可以继续。请按提示修正后重新点击“开始 AI 多模态批改”。</div></div>' : '') +
+          '<div class="result-banner"><div><h2>' + CH.escapeHTML(submission.studentName) + ' · ' + CH.escapeHTML(submission.batchName) + '</h2><p>' + CH.escapeHTML(submission.unit || '') + ' · 批改于 ' + CH.formatDate(submission.gradedAt, true) + ' · ' + CH.escapeHTML(sourceText) + '</p><div class="result-meta"><span class="tag tag-blue">' + questions.length + ' 题逐题解析</span><span class="tag tag-green">已写入学生档案</span><a class="tag tag-gray" href="' + studentLink + '">查看档案 →</a></div></div><div class="score-panel"><div class="score-ring" style="background:conic-gradient(var(--blue-600) 0 ' + score + '%, #e8f0f6 ' + score + '% 100%)"><div><strong>' + score + '</strong><small>综合得分</small></div></div><div class="score-copy"><span class="grade-badge ' + CH.gradeClass(grade) + '">' + CH.escapeHTML(grade) + '</span><p>等级 / 100 分制</p></div></div></div>' +
+          '<div class="dimension-grid">' + dimensionHTML('知识准确性', dims.accuracy) + dimensionHTML('思维完整性', dims.logic) + dimensionHTML('规范性', dims.normativity) + '</div>' +
+          '<div class="overall-box"><strong>整体评价 · 80—120 字</strong>' + CH.escapeHTML(data.overall) + '</div>' +
+          '<div class="weak-tags"><span class="weak-label">自动归纳的薄弱点：</span>' + (weakTags.length ? weakTags.map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join('') : '<span class="tag tag-gray">本次未发现明显薄弱点</span>') + '</div>' +
+          '<div class="section-head" style="margin:4px 0 0;"><div><h2>逐题解析</h2><p>判定分为正确 / 部分正确 / 错误 / 存疑；配平错误但化学式正确会判为“部分正确”。</p></div></div>' +
+          '<div class="question-list">' + (questionsHTML || '<div class="card"><div class="empty-state"><p>未返回逐题解析。</p></div></div>') + '</div>' +
+          '<div class="alert alert-info"><span class="alert-icon">i</span><div>本结果由 AIGC 辅助生成，可能存在识别或判断偏差，请教师结合原卷复核；标记为优秀答案前请确认已获得学生授权，展示时自动匿名。</div></div>' +
+          '</div>';
+        printResult.style.display = '';
+      }
+
+      resultBox.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-excellent]');
+        if (!button || !state.viewingSubmission) return;
+        var qno = button.getAttribute('data-excellent');
+        var active = button.getAttribute('data-active') === '1';
+        var submission = state.viewingSubmission;
+        var question = (submission.result.questions || []).filter(function (item) { return String(item.no) === String(qno); })[0];
+        if (!question) return;
+        if (active) {
+          var existing = CH.findExcellent(submission.id, qno);
+          if (existing) {
+            CH.setExcellentActive(existing.id, false);
+            CH.toast('已取消该题的优秀答案展示。', 'success');
+            renderResult(submission);
+            renderStats();
+          }
+          return;
+        }
+        openExcellentDialog(submission, question);
+      });
+
+      function openExcellentDialog(submission, question) {
+        var existing = CH.findExcellent(submission.id, question.no);
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="excellentTitle"><div class="modal-header"><div><h2 id="excellentTitle">标记优秀答案</h2><p>第 ' + CH.escapeHTML(String(question.no)) + ' 题 · 匿名展示</p></div><button class="modal-close" type="button" aria-label="关闭">×</button></div><div class="modal-body"><div class="overall-box" style="margin-bottom:12px;"><strong>学生作答</strong>' + CH.escapeHTML(question.studentAnswer) + '</div><div class="field"><label for="excellentComment">教师评语</label><textarea class="input" id="excellentComment" rows="3" placeholder="说明这道题值得学习的地方，例如：步骤完整、守恒检查清楚。"></textarea><small class="field-hint">展示时会隐去姓名、学号与班级，仅保留题目、作答和评语。</small></div></div><div class="modal-footer"><button class="btn btn-ghost" type="button" data-cancel>取消</button><button class="btn btn-primary" type="button" data-save>确认标记</button></div></div>';
+        document.body.appendChild(overlay);
+        document.body.classList.add('modal-open');
+        var textarea = overlay.querySelector('#excellentComment');
+        textarea.value = existing ? existing.comment : '思路清晰、表达规范，可作为班级范例。';
+        function close() {
+          document.body.classList.remove('modal-open');
+          overlay.remove();
+          document.removeEventListener('keydown', onKey);
+        }
+        function onKey(event) {
+          if (event.key === 'Escape') close();
+        }
+        overlay.querySelector('.modal-close').addEventListener('click', close);
+        overlay.querySelector('[data-cancel]').addEventListener('click', close);
+        overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
+        document.addEventListener('keydown', onKey);
+        overlay.querySelector('[data-save]').addEventListener('click', function () {
+          var comment = textarea.value.trim();
+          if (!comment) { CH.toast('请填写一句教师评语。', 'warning'); textarea.focus(); return; }
+          CH.markExcellent(submission.id, question.no, comment);
+          close();
+          CH.toast('已匿名展示到优秀答案墙。', 'success');
+          renderResult(submission);
+          renderStats();
+        });
+        textarea.focus();
+      }
+
+      async function grade(withAI) {
+        if (state.busy) return;
+        if (!students.length) { CH.toast('当前班级还没有学生档案。', 'warning'); return; }
+        if (!state.studentId || !state.batchId) { CH.toast('请先选择学生和作业批次。', 'warning'); return; }
+        if (withAI && state.fileKind === 'pdf') {
+          CH.toast('PDF 演示版暂不支持直接识别，请上传 JPG/PNG 图片；也可先使用“演示数据批改”。', 'warning');
+          return;
+        }
+        if (withAI && !state.dataUrl) {
+          CH.toast('请先上传一张 JPG/PNG 作业图片，再调用多模态接口。', 'warning');
+          uploadZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        var useExisting = state.currentSubmission && state.currentSubmission.status === 'pending' && state.currentSubmission.studentId === state.studentId && state.currentSubmission.batchId === state.batchId;
+        var submission = useExisting ? state.currentSubmission : CH.createSubmission({
+          studentId: state.studentId,
+          batchId: state.batchId,
+          selfReport: selfReport.value.trim(),
+          fileName: state.file ? state.file.name : '教师上传作业',
+          source: state.fileKind === 'pdf' ? 'pdf' : 'upload',
+          status: 'pending'
+        });
+        setBusy(true);
+        startProgress(withAI ? '正在调用 DeepSeek 多模态批改…' : '正在载入演示批改数据…');
+        var fallbackNote = '';
+        try {
+          var result;
+          if (withAI) {
+            try {
+              result = await CH.tryAIGrade({
+                dataUrl: state.dataUrl,
+                batchId: state.batchId,
+                className: className,
+                selfReport: selfReport.value.trim(),
+                fileName: state.file ? state.file.name : ''
+              });
+              document.getElementById('progressBar').style.width = '82%';
+              document.getElementById('progressPercent').textContent = '82%';
+            } catch (error) {
+              fallbackNote = error && error.message ? error.message : '接口调用失败';
+              result = CH.getMockResult(state.batchId, Math.floor(Math.random() * 3));
+              result.fallbackReason = fallbackNote;
+            }
+          } else {
+            result = CH.getMockResult(state.batchId, Math.floor(Math.random() * 3));
+          }
+          var graded = CH.gradeSubmission(submission.id, result, { fileName: state.file ? state.file.name : submission.fileName });
+          state.currentSubmission = null;
+          state.viewingSubmission = graded;
+          showQueueNotice('');
+          selfReport.value = '';
+          renderResult(graded, fallbackNote);
+          renderStats();
+          renderPending();
+          renderAnalysisList();
+          finishProgress(fallbackNote ? '已回退演示数据' : '批改完成');
+          CH.toast(fallbackNote ? '接口未就绪，已自动使用演示数据完成批改。' : '批改完成，结果已写入学生档案。', fallbackNote ? 'warning' : 'success');
+          document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          clearInterval(state.progressTimer);
+          progressCard.classList.remove('is-visible');
+          CH.toast(error.message || '批改失败，请重试。', 'error');
+        } finally {
+          setBusy(false);
+          updateAnalysisSelection();
+        }
+      }
+
+      gradeAI.addEventListener('click', function () { grade(true); });
+      gradeDemo.addEventListener('click', function () { grade(false); });
+      printResult.addEventListener('click', function () { window.print(); });
+
+      function renderLatest() {
+        var latest = CH.getSubmissions().filter(function (item) {
+          return item.className === className && item.status === 'graded' && item.result;
+        }).sort(function (a, b) { return new Date(b.gradedAt || b.submittedAt) - new Date(a.gradedAt || a.submittedAt); })[0];
+        if (latest) renderResult(latest);
+      }
+
+      initSelects();
+      updateApiBadge();
+      renderStats();
+      renderPending();
+      renderAnalysisList();
+      updateAnalysisSelection();
+
+      var params = new URLSearchParams(location.search);
+      var sid = params.get('submission');
+      var requested = sid ? CH.getSubmissionById(sid) : null;
+      if (requested && requested.className === className) {
+        state.studentId = requested.studentId;
+        state.batchId = requested.batchId;
+        studentSelect.value = state.studentId;
+        batchSelect.value = state.batchId;
+        if (requested.status === 'pending') {
+          loadPending(requested);
+        } else if (requested.result) {
+          renderResult(requested);
+        }
+      } else {
+        renderLatest();
+      }
+    })();
+  </script>
+</body>
+</html>

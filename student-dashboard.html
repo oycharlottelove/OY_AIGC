@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="学生工作台：提交作业、查看批改结果、我的档案与优秀答案墙。">
+  <title>学生工作台 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">学生学习台 · 作业与评价</span>
+          <h1>你好，<span data-user-name>同学</span>。<br>把每一次订正，变成下一次进步。</h1>
+          <p>在这里提交化学作业、查看 AI 批改结果与逐题解析，也能在匿名优秀答案墙里找到值得借鉴的表达方式。批改结果会自动汇入你的成长档案。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="student-homework.html">提交新作业 →</a>
+            <a class="btn btn-ghost btn-lg" href="student-profile.html">查看我的档案</a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><strong id="statGraded">0</strong><small>已批改作业</small></div>
+            <div class="hero-stat"><strong id="statAverage">—</strong><small>平均分</small></div>
+            <div class="hero-stat"><strong id="statPending">0</strong><small>待批改</small></div>
+          </div>
+        </div>
+        <aside class="hero-side" aria-label="学习提示">
+          <span class="hero-side-title">当前关注</span>
+          <div class="hero-mini">
+            <span class="hero-mini-icon">◈</span>
+            <div><strong id="focusTags">先完成一次作业提交</strong><small>薄弱点会随批改自动更新</small></div>
+          </div>
+          <div class="hero-mini">
+            <span class="hero-mini-icon">↗</span>
+            <div><strong id="focusTrend">等级趋势待生成</strong><small>每次批改都会留下一个坐标</small></div>
+          </div>
+          <div class="hero-mini">
+            <span class="hero-mini-icon">★</span>
+            <div><strong>优秀答案墙已开放</strong><small>匿名展示，只看思路与表达</small></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>作业批次</h2><p>选择一次作业，上传照片或直接使用演示数据提交。</p></div>
+        <a class="section-link" href="student-homework.html">进入我的作业 →</a>
+      </div>
+      <div class="assignment-list" id="batchList">
+        <div class="card"><div class="empty-state"><div class="empty-icon">◈</div><h3>正在读取作业批次</h3><p>请稍候。</p></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>最近的批改结果</h2><p>点击可查看等级、三维度评语、逐题解析与薄弱点。</p></div>
+        <a class="section-link" href="student-homework.html">查看全部 →</a>
+      </div>
+      <div class="grid grid-2" id="recentResults">
+        <div class="card"><div class="empty-state"><div class="empty-icon">✓</div><h3>正在读取批改结果</h3><p>请稍候。</p></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-header"><div><h2>我的薄弱点</h2><p>根据已批改作业自动归纳，最多展示 6 个标签。</p></div><a class="section-link" href="student-profile.html">档案 →</a></div>
+          <div class="card-body" id="weakTagsBox"><span class="muted small">还没有批改记录。</span></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><h2>学习建议</h2><p>从最近一次批改中提取的行动建议。</p></div><a class="section-link" href="student-homework.html">去订正 →</a></div>
+          <div class="card-body" id="adviceBox"><p class="muted small">完成第一次作业后，这里会出现针对性的学习建议。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>优秀答案墙</h2><p>匿名展示教师标记的优秀作答，学习思路，而不是照抄答案。</p></div>
+        <a class="section-link" href="excellent-answers.html">进入答案墙 →</a>
+      </div>
+      <div class="grid grid-2" id="excellentPreview">
+        <div class="card"><div class="empty-state"><div class="empty-icon">★</div><h3>正在读取优秀答案</h3><p>请稍候。</p></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><div><h2>学习模块</h2><p>“作业与评价”与“课后答疑”已完整实现；课堂教学已接入实验仿真；教学设计为演示占位页。</p></div></div>
+      <div class="grid grid-3">
+        <a class="assignment-card" href="teaching-design.html"><div><p class="assignment-title">✎ 教学设计</p><div class="assignment-meta"><span>学习目标</span><span>任务单</span><span class="tag tag-gray">待扩展</span></div></div><span class="btn btn-ghost btn-sm">进入</span></a>
+        <a class="assignment-card" href="classroom-teaching.html"><div><p class="assignment-title">▤ 课堂教学</p><div class="assignment-meta"><span>实验仿真</span><span>课堂互动</span><span class="tag tag-green">已上线</span></div></div><span class="btn btn-ghost btn-sm">进入</span></a>
+        <a class="assignment-card" href="after-school-service.html"><div><p class="assignment-title">☾ 课后服务</p><div class="assignment-meta"><span>课后答疑</span><span>变式练习</span><span class="tag tag-green">已上线</span></div></div><span class="btn btn-ghost btn-sm">进入</span></a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>隐私提示：</strong>批改结果与档案仅保存在当前浏览器。优秀答案墙只展示匿名化后的题目与作答，不显示姓名、学号或班级。AIGC 内容为辅助学习材料，请以教师讲评为准。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ role: 'student', active: 'dashboard', title: '学生工作台 · 知行化学' });
+      if (!user) return;
+      var student = CH.getStudentByUserId(user.id);
+      if (!student) {
+        document.getElementById('batchList').innerHTML = '<div class="card"><div class="empty-state"><div class="empty-icon">!</div><h3>未找到学生档案</h3><p>请退出后重新注册学生账号，或在设置页恢复演示数据。</p><a class="btn btn-secondary btn-sm" href="settings.html">前往设置</a></div></div>';
+        return;
+      }
+
+      var submissions = CH.getSubmissions().filter(function (item) { return item.studentId === student.studentId; });
+      var graded = submissions.filter(function (item) { return item.status === 'graded' && item.result; }).sort(function (a, b) { return new Date(b.gradedAt) - new Date(a.gradedAt); });
+      var pending = submissions.filter(function (item) { return item.status === 'pending'; });
+      var stats = CH.getStudentStats(student.studentId);
+
+      document.getElementById('statGraded').textContent = graded.length;
+      document.getElementById('statAverage').textContent = stats.average ? stats.average : '—';
+      document.getElementById('statPending').textContent = pending.length;
+
+      if (student.weakTags && student.weakTags.length) {
+        document.getElementById('focusTags').textContent = '优先关注：' + student.weakTags.slice(0, 2).join('、');
+      } else {
+        document.getElementById('focusTags').textContent = '先完成一次作业提交';
+      }
+      if (graded.length >= 2) {
+        var latest = graded[0].result;
+        var previous = graded[1].result;
+        var diff = (Number(latest.score) || 0) - (Number(previous.score) || 0);
+        document.getElementById('focusTrend').textContent = diff >= 0 ? ('较上次提升 ' + diff + ' 分') : ('较上次回落 ' + Math.abs(diff) + ' 分');
+      } else if (graded.length === 1) {
+        document.getElementById('focusTrend').textContent = '已生成第一个成长坐标';
+      }
+
+      var batchBox = document.getElementById('batchList');
+      batchBox.innerHTML = CH.BATCHES.map(function (batch) {
+        var mine = submissions.filter(function (item) { return item.batchId === batch.id; }).sort(function (a, b) { return new Date(b.submittedAt) - new Date(a.submittedAt); });
+        var latest = mine[0];
+        var status = '';
+        var action = '';
+        if (!latest) {
+          status = '<span class="tag tag-gray">未提交</span>';
+          action = '<a class="btn btn-primary btn-sm" href="student-homework.html?batch=' + batch.id + '">去提交</a>';
+        } else if (latest.status === 'pending') {
+          status = '<span class="tag tag-amber">待批改</span>';
+          action = '<a class="btn btn-ghost btn-sm" href="student-homework.html?submission=' + encodeURIComponent(latest.id) + '">查看提交</a>';
+        } else {
+          status = '<span class="grade-badge ' + CH.gradeClass(latest.result.grade) + '">' + CH.escapeHTML(latest.result.grade) + '</span>';
+          action = '<a class="btn btn-secondary btn-sm" href="student-homework.html?submission=' + encodeURIComponent(latest.id) + '">查看批改</a>';
+        }
+        return '<div class="assignment-card"><div><p class="assignment-title">' + CH.escapeHTML(batch.name) + '</p><div class="assignment-meta"><span>' + CH.escapeHTML(batch.unit) + '</span><span>截止 ' + CH.escapeHTML(batch.due) + '</span><span>' + CH.escapeHTML(batch.task) + '</span>' + status + '</div></div><div class="assignment-actions">' + action + '</div></div>';
+      }).join('');
+
+      var resultBox = document.getElementById('recentResults');
+      if (!graded.length) {
+        resultBox.innerHTML = '<div class="card" style="grid-column:1/-1;"><div class="empty-state"><div class="empty-icon">✓</div><h3>还没有批改结果</h3><p>提交一份作业后，AI 会给出等级、三维度评语与逐题解析。</p><a class="btn btn-primary btn-sm" href="student-homework.html">去提交作业</a></div></div>';
+      } else {
+        resultBox.innerHTML = graded.slice(0, 2).map(function (item) {
+          var tags = (item.result.weakTags || []).slice(0, 3).map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join(' ');
+          return '<div class="card"><div class="card-header"><div><h2>' + CH.escapeHTML(item.batchName) + '</h2><p>' + CH.escapeHTML(item.unit || '') + ' · ' + CH.formatDate(item.gradedAt, true) + '</p></div><span class="grade-badge ' + CH.gradeClass(item.result.grade) + '">' + CH.escapeHTML(item.result.grade) + '</span></div><div class="card-body"><p class="small ink-soft" style="margin:0 0 10px;">' + CH.escapeHTML(CH.truncate(item.result.overall, 96)) + '</p><div class="tag-list">' + (tags || '<span class="tag tag-gray">暂无薄弱点</span>') + '</div></div><div class="card-footer between"><span class="small muted">得分 ' + CH.escapeHTML(String(item.result.score)) + ' / 100</span><a class="btn btn-secondary btn-sm" href="student-homework.html?submission=' + encodeURIComponent(item.id) + '">查看逐题解析 →</a></div></div>';
+        }).join('');
+      }
+
+      var weakBox = document.getElementById('weakTagsBox');
+      if (student.weakTags && student.weakTags.length) {
+        weakBox.innerHTML = '<div class="tag-list">' + student.weakTags.map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join('') + '</div><p class="small muted" style="margin:12px 0 0;">建议优先订正带有这些标签的题目，再完成一次同类题复测。</p>';
+      } else {
+        weakBox.innerHTML = '<p class="small muted" style="margin:0;">还没有足够的批改记录来归纳薄弱点。</p>';
+      }
+
+      var adviceBox = document.getElementById('adviceBox');
+      if (graded.length) {
+        var latestResult = graded[0].result;
+        var firstWrong = (latestResult.questions || []).filter(function (q) { return q.verdict !== '正确'; })[0];
+        var advice = firstWrong ? ('优先复盘第 ' + CH.escapeHTML(String(firstWrong.no)) + ' 题：' + CH.escapeHTML(CH.truncate(firstWrong.reason, 80))) : '最近一次作业完成得很好，可以尝试挑战更高阶的变式题。';
+        adviceBox.innerHTML = '<div class="overall-box"><strong>来自最近一次批改</strong>' + advice + '</div><p class="small muted" style="margin:10px 0 0;">完整解析见“我的作业”。</p>';
+      }
+
+      var excellentBox = document.getElementById('excellentPreview');
+      var excellent = CH.getActiveExcellent().slice(0, 2);
+      if (!excellent.length) {
+        excellentBox.innerHTML = '<div class="card" style="grid-column:1/-1;"><div class="empty-state"><div class="empty-icon">★</div><h3>优秀答案墙暂时为空</h3><p>教师标记优秀作答后，这里会出现匿名示范。</p><a class="btn btn-ghost btn-sm" href="excellent-answers.html">去看看</a></div></div>';
+      } else {
+        excellentBox.innerHTML = excellent.map(function (item) {
+          return '<div class="excellent-card"><p class="quote">优秀答案 · 匿名示范</p><h3>' + CH.escapeHTML(CH.truncate(item.question, 58)) + '</h3><p class="answer">' + CH.escapeHTML(CH.truncate(item.answer, 120)) + '</p><div class="teacher-comment"><strong>教师评语：</strong>' + CH.escapeHTML(CH.truncate(item.comment, 72)) + '</div></div>';
+        }).join('');
+      }
+    })();
+  </script>
+</body>
+</html>

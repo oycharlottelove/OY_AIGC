@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="课堂教学模块：已接入高中化学实验仿真实验室，覆盖 7 个必做实验，并提供后续 AI 课堂能力规划。">
+  <title>课堂教学 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <section class="placeholder-hero" data-number="02">
+      <span class="eyebrow">模块入口 · 实验仿真已上线</span>
+      <h1>课堂教学</h1>
+      <p>把 AI 与交互仿真带进化学课堂。本模块现已接入“高中化学实验仿真实验室”，覆盖 7 个高中必做实验；课堂即时问答、微观动画讲解与课堂数据看板仍在规划中。</p>
+      <div class="form-actions">
+        <a class="btn btn-primary" href="virtual-lab.html" id="labCta">进入实验仿真实验室</a>
+        <a class="btn btn-secondary" href="teacher-homework.html" id="homeworkCta">先体验作业与评价</a>
+        <a class="btn btn-ghost" href="teacher-dashboard.html" id="dashboardCta">返回工作台</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>已上线：高中化学实验仿真实验室</h2><p>由课堂演示走向可操作探究：选择实验、检查安全条件、启动反应，观察装置现象与微观粒子变化。</p></div>
+        <span class="tag tag-green">已上线 · 可交互</span>
+      </div>
+      <article class="lab-entry">
+        <div class="lab-visual" aria-hidden="true">
+          <span class="lab-chip chip-a">实时仿真</span>
+          <span class="lab-chip chip-b">安全防呆</span>
+          <span class="lab-chip chip-c">微观粒子</span>
+          <div class="lab-flask">⚗</div>
+          <div class="lab-visual-note"><b>7</b><span>个必做实验</span></div>
+        </div>
+        <div class="lab-copy">
+          <span class="eyebrow">RENJIAO · INTERACTIVE LAB</span>
+          <h3>把实验装置、现象与安全操作，放进一块屏幕</h3>
+          <p>7 个高中化学必做实验，覆盖氯气制备、浓硫酸与铜、钠与水、铝热反应、铁与水蒸气、铜与硝酸、氢气还原氧化铜。每个实验都有实时装置、微观粒子窗、操作步骤与安全警报，适合课堂大屏演示，也适合学生自主探究。</p>
+          <div class="lab-facts"><span><b>7</b> 个必做实验</span><span>实时装置 + 微观动画</span><span>安全操作防呆</span></div>
+          <div class="lab-tags">
+            <span>实验室制取氯气</span><span>浓硫酸与铜</span><span>钠与水</span><span>铝热反应</span><span>铁与水蒸气</span><span>铜与浓、稀硝酸</span><span>氢气还原氧化铜</span>
+          </div>
+          <div class="form-actions">
+            <a class="btn btn-primary" href="virtual-lab.html">打开实验仿真实验室</a>
+            <span class="lab-note">电脑 / 平板 / 手机均可使用；无需安装插件。实验页面由同学提供，已整合鉴权与返回入口。</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>继续建设的能力</h2><p>实验仿真已上线；以下能力仍在规划中，用于说明课堂教学模块的后续迭代方向。</p></div>
+        <span class="tag tag-amber">部分上线 · 演示版</span>
+      </div>
+      <div class="coming-grid">
+        <article class="coming-card"><div class="coming-icon">◉</div><h3>课堂即时问答</h3><p>教师抛出一个化学问题，学生用手机提交关键词，系统即时聚类并投屏典型答案。</p><span class="coming-status">即将上线</span></article>
+        <article class="coming-card"><div class="coming-icon">⚛</div><h3>微观过程动画讲解</h3><p>把离子反应、电子转移等抽象过程转成可暂停的分步动画，辅助学生建立微观表征。</p><span class="coming-status">规划中</span></article>
+        <article class="coming-card"><div class="coming-icon">▤</div><h3>实验报告与复盘</h3><p>把仿真中的操作步骤、现象观察与安全判断整理成课堂复盘单，支持学生课后回看。</p><span class="coming-status">即将上线</span></article>
+        <article class="coming-card"><div class="coming-icon">▦</div><h3>课堂数据看板</h3><p>汇总当堂练习的正确率与典型错误，帮助教师决定是否进入下一环节。</p><span class="coming-status">即将上线</span></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>版本说明：</strong>本平台当前完整实现“作业与评价”模块，并已接入“课堂教学”的实验仿真实验室；其余课堂教学能力保留需求卡片，便于后续按同一数据结构继续开发。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ active: 'classroom', title: '课堂教学 · 知行化学' });
+      if (!user) return;
+      var isTeacher = user.role === 'teacher';
+      document.getElementById('homeworkCta').href = isTeacher ? 'teacher-homework.html' : 'student-homework.html';
+      document.getElementById('dashboardCta').href = isTeacher ? 'teacher-dashboard.html' : 'student-dashboard.html';
+    })();
+  </script>
+</body>
+</html>

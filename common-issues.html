@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="班级共性问题报告：高频错误 Top 5、匿名典型错误示例与课堂讲评建议。">
+  <title>班级共性分析 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <div class="page-head">
+      <div>
+        <nav class="breadcrumbs" aria-label="面包屑"><a href="teacher-dashboard.html">教师工作台</a><span>/</span><span>班级共性分析</span></nav>
+        <h1>班级共性分析</h1>
+        <p>把多份已批改作业聚合为班级报告：定位高频错误、回看匿名错例、生成 1—3 条课堂讲评建议。报告只统计当前班级，不展示学生真实姓名。</p>
+      </div>
+      <div class="page-head-actions">
+        <button class="btn btn-secondary btn-sm" type="button" id="printReport">打印报告</button>
+        <a class="btn btn-ghost btn-sm" href="teacher-homework.html">返回批改</a>
+      </div>
+    </div>
+
+    <div id="reportArea" class="stack">
+      <div class="card"><div class="card-body"><p class="small muted" style="margin:0;">正在汇总班级批改数据。</p></div></div>
+    </div>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>使用说明：</strong>报告由 AI 批改结果自动聚合，典型错例统一以“学生 A / 学生 B”匿名呈现。建议在课堂讲评前先核对原卷，结合本班学情调整讲评顺序；报告中的 AIGC 内容需经教师人工复核。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ role: 'teacher', active: 'issues', title: '班级共性分析 · 知行化学' });
+      if (!user) return;
+      var className = user.className || CH.DEMO_CLASS;
+      var area = document.getElementById('reportArea');
+      var params = new URLSearchParams(location.search);
+      var requestedId = params.get('report');
+
+      function classReports() {
+        return CH.getReports().filter(function (item) { return item.className === className; });
+      }
+
+      function classGraded() {
+        return CH.getSubmissions().filter(function (item) {
+          return item.className === className && item.status === 'graded' && item.result;
+        }).sort(function (a, b) { return new Date(b.gradedAt || b.submittedAt) - new Date(a.gradedAt || a.submittedAt); });
+      }
+
+      function pickReport() {
+        var reports = classReports();
+        if (!reports.length) return null;
+        if (requestedId) {
+          var found = reports.filter(function (item) { return item.id === requestedId; })[0];
+          if (found) return found;
+        }
+        return reports[0];
+      }
+
+      function renderNoReport() {
+        var graded = classGraded();
+        var canMake = graded.length >= 2;
+        area.innerHTML = '<section class="card"><div class="empty-state"><div class="empty-icon">▦</div><h3>还没有班级共性报告</h3><p>' +
+          (canMake ? '本班已有 ' + graded.length + ' 份已批改作业，可以立即生成第一份共性分析报告。' : '至少需要 2 份同班已批改作业才能生成报告。请先完成批改，或在设置页恢复演示数据。') +
+          '</p>' +
+          (canMake ? '<button class="btn btn-primary" type="button" id="createReport">基于本班 ' + graded.length + ' 份作业生成报告</button>' : '<a class="btn btn-secondary" href="teacher-homework.html">去批改作业</a>') +
+          '</div></section>' +
+          '<section class="card"><div class="card-header"><div><h2>怎样生成报告</h2><p>两种方式都可以。</p></div></div><div class="card-body"><div class="grid grid-2"><div class="analysis-snippet"><strong>方式一：在批改页勾选</strong><p>进入“作业批改”，在已批改列表中勾选同一班级的 2 份及以上作业，点击“生成班级共性分析”。</p></div><div class="analysis-snippet"><strong>方式二：在本页一键生成</strong><p>点击上方按钮，系统会把本班全部已批改作业纳入统计，自动去重并匿名化。</p></div></div></div></section>';
+        var button = document.getElementById('createReport');
+        if (button) {
+          button.addEventListener('click', function () {
+            button.disabled = true;
+            button.textContent = '正在生成…';
+            try {
+              var report = CH.generateCommonReport(graded.map(function (item) { return item.id; }));
+              CH.toast('班级共性报告已生成。', 'success');
+              history.replaceState(null, '', 'common-issues.html?report=' + encodeURIComponent(report.id));
+              requestedId = report.id;
+              render();
+            } catch (error) {
+              button.disabled = false;
+              button.textContent = '重新生成报告';
+              CH.toast(error.message || '生成失败。', 'error');
+            }
+          });
+        }
+      }
+
+      function renderReport(report) {
+        var reports = classReports();
+        var totalStudents = Math.max(1, report.studentCount || 1);
+        var top = Array.isArray(report.topErrors) ? report.topErrors.slice(0, 5) : [];
+        while (top.length < 5) {
+          top.push(null);
+        }
+        var errorCards = top.map(function (item, index) {
+          if (!item) {
+            return '<div class="issue-card" style="opacity:.55;"><div class="issue-rank"><span>' + (index + 1) + '</span><span>待补充</span></div><h3 class="issue-title">暂无更多高频问题</h3><div class="issue-count">—<small>份作业</small></div><div class="issue-bar"><span style="width:0;"></span></div></div>';
+          }
+          var percent = Math.max(4, Math.min(100, Number(item.percent) || Math.round((Number(item.count) || 0) / totalStudents * 100)));
+          return '<div class="issue-card"><div class="issue-rank"><span>' + (index + 1) + '</span><span>' + percent + '% 学生涉及</span></div><h3 class="issue-title">' + CH.escapeHTML(item.title) + '</h3><div class="issue-count">' + (Number(item.count) || 0) + '<small>份作业</small></div><div class="issue-bar"><span style="width:' + percent + '%;"></span></div></div>';
+        }).join('');
+
+        var detailBlocks = report.topErrors && report.topErrors.length ? report.topErrors.map(function (item, index) {
+          var examples = (item.examples || []).map(function (example) {
+            return '<div class="example-box"><span class="student-label">' + CH.escapeHTML(example.studentLabel || '学生 A') + ' · ' + CH.escapeHTML(example.verdict || '错误') + '</span><p>' + CH.escapeHTML(example.text || '该题作答未完整识别，建议结合原卷面批。') + '</p></div>';
+          }).join('');
+          return '<div style="margin-bottom:16px;"><div class="timeline-head" style="margin-bottom:7px;"><strong>' + (index + 1) + '. ' + CH.escapeHTML(item.title) + '</strong><span class="tag tag-amber">' + (Number(item.count) || 0) + ' 人涉及</span></div><p class="small muted" style="margin:0 0 8px;">' + CH.escapeHTML(item.description || '') + '</p>' + (examples || '<div class="example-box"><span class="student-label">匿名示例</span><p>该题暂未记录可展示的作答片段，建议结合原卷面批。</p></div>') + '</div>';
+        }).join('') : '<div class="empty-state" style="padding:24px;"><div class="empty-icon">✓</div><h3>本次没有集中错误</h3><p>可以把讲评重点转向方法迁移与规范表达，或安排一道综合变式题。</p></div>';
+
+        var suggestions = (report.suggestions || []).map(function (text) {
+          return '<div class="suggestion-item"><strong>讲评建议</strong>　' + CH.escapeHTML(text) + '</div>';
+        }).join('');
+        var picker = reports.length > 1 ? '<div class="wall-toolbar"><div><strong style="font-size:13px;">历史报告</strong><p class="small muted" style="margin:2px 0 0;">共 ' + reports.length + ' 份，可切换查看。</p></div><select class="input filter-select" id="reportPicker" aria-label="切换历史报告">' + reports.map(function (item) {
+          return '<option value="' + encodeURIComponent(item.id) + '"' + (item.id === report.id ? ' selected' : '') + '>' + CH.escapeHTML(CH.formatDate(item.createdAt, true)) + ' · ' + (item.sampleCount || 0) + ' 份</option>';
+        }).join('') + '</select></div>' : '';
+
+        area.innerHTML = picker + '<section class="card"><div class="card-header"><div><h2>' + CH.escapeHTML(report.className) + ' · 共性分析报告</h2><p>生成于 ' + CH.formatDate(report.createdAt, true) + ' · 统计口径：' + CH.escapeHTML(report.engine || 'AI 批改结果聚合') + '</p></div><span class="tag tag-blue">教师专用</span></div><div class="card-body"><div class="grid grid-3"><div class="stat-card"><strong>' + (report.sampleCount || 0) + '</strong><span>纳入作业</span><small>同一班级已批改</small></div><div class="stat-card"><strong>' + (report.studentCount || 0) + '</strong><span>覆盖学生</span><small>已匿名化处理</small></div><div class="stat-card"><strong>' + (report.topErrors ? report.topErrors.length : 0) + '</strong><span>高频问题</span><small>按涉及人数排序</small></div></div><div class="overall-box" style="margin-top:14px;"><strong>分析摘要</strong>' + CH.escapeHTML(report.summary || '') + '</div></div></section>' +
+          '<section class="section"><div class="section-head"><div><h2>高频错误 Top 5</h2><p>按涉及学生人数从高到低排序；百分比为涉及人数占样本学生数的比例。</p></div><span class="tag tag-gray">匿名聚合</span></div><div class="issue-grid">' + errorCards + '</div></section>' +
+          '<div class="grid grid-2"><section class="card"><div class="card-header"><div><h2>典型错误示例（匿名）</h2><p>保留学生原始作答片段，用于课堂辨析，不暴露姓名。</p></div></div><div class="card-body">' + detailBlocks + '</div></section><section class="card"><div class="card-header"><div><h2>教学补救建议</h2><p>建议按“错例展示—方法归纳—变式复测”组织讲评。</p></div></div><div class="card-body"><div class="suggestion-list">' + (suggestions || '<div class="suggestion-item"><strong>讲评建议</strong>　先展示典型错例，引导学生归纳判断依据，再用 2 道同类变式题即时复测。</div>') + '</div><div class="alert alert-warning" style="margin-top:14px;"><span class="alert-icon">!</span><div><strong>复核提醒：</strong>AI 归因可能与真实错因存在偏差，讲评前请抽查原卷；涉及手写识别存疑的题目，以教师核对为准。</div></div></div></section></div>' +
+          '<div class="form-actions"><a class="btn btn-primary" href="teacher-homework.html">继续批改作业</a><a class="btn btn-secondary" href="student-profile.html">查看学生档案</a><button class="btn btn-ghost" type="button" id="printReport2">打印本报告</button></div>';
+
+        var pickerNode = document.getElementById('reportPicker');
+        if (pickerNode) {
+          pickerNode.addEventListener('change', function () {
+            location.href = 'common-issues.html?report=' + pickerNode.value;
+          });
+        }
+        var print2 = document.getElementById('printReport2');
+        if (print2) print2.addEventListener('click', function () { window.print(); });
+      }
+
+      function render() {
+        var report = pickReport();
+        if (!report) {
+          renderNoReport();
+          return;
+        }
+        renderReport(report);
+        document.title = report.className + ' · 共性分析 · 知行化学';
+      }
+
+      document.getElementById('printReport').addEventListener('click', function () { window.print(); });
+      render();
+    })();
+  </script>
+</body>
+</html>

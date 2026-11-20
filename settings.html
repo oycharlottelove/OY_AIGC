@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="平台设置：配置 OpenAI 兼容模型接口的 API Key、模型名与接口地址，测试连接，清空或恢复演示数据。">
+  <title>设置 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <div class="page-head">
+      <div>
+        <nav class="breadcrumbs" aria-label="面包屑"><a id="backDashboard" href="teacher-dashboard.html">工作台</a><span>/</span><span>设置</span></nav>
+        <h1>设置</h1>
+        <p>配置任意 OpenAI 兼容的多模态模型接口（DeepSeek、智谱、Gemini、硅基流动等），或直接使用内置演示数据。未填写 API Key、调用失败或开启“强制演示模式”时，平台会自动使用预置数据，所有页面仍可完整演示。</p>
+      </div>
+      <div class="page-head-actions">
+        <a class="btn btn-ghost btn-sm" href="index.html" id="logoutLink">退出登录</a>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <section class="card settings-card">
+        <div class="card-header">
+          <div><h2>模型接口配置</h2><p>Key 只保存在当前浏览器的 localStorage，不会上传到本平台以外的服务器。</p></div>
+          <span class="tag tag-gray" id="saveState">未修改</span>
+        </div>
+        <form id="settingsForm" autocomplete="off">
+          <div class="card-body stack">
+            <div class="field">
+              <label for="apiKey">API Key <span class="required">*</span></label>
+              <div class="input-with-action">
+                <input class="input" id="apiKey" name="apiKey" type="password" placeholder="sk-…（留空则使用演示数据）" autocomplete="off" spellcheck="false">
+                <button class="btn btn-ghost" type="button" id="toggleKey">显示</button>
+              </div>
+              <span class="field-hint">在对应模型平台创建 Key 后粘贴到这里。请勿把 Key 写进代码、截图或公开仓库，也不要共用他人的 Key。</span>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="model">模型名</label>
+                <input class="input" id="model" name="model" type="text" value="deepseek-flash" placeholder="deepseek-flash" spellcheck="false">
+                <span class="field-hint">默认 deepseek-flash，对应 DeepSeek 4.1 Flash 多模态接口；改用其他平台时，请按该平台控制台的模型名填写。</span>
+              </div>
+              <div class="field">
+                <label for="apiBase">接口地址</label>
+                <input class="input" id="apiBase" name="apiBase" type="url" placeholder="https://api.deepseek.com/chat/completions" spellcheck="false">
+                <span class="field-hint">一般保持默认即可；填入以 /v1 结尾的地址时，脚本会自动补全 /chat/completions。</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>快速填入模型预设（可选）</label>
+              <div class="preset-grid" id="presetGrid">
+                <button class="preset-btn" type="button" data-model="deepseek-flash" data-base="https://api.deepseek.com/chat/completions" data-name="DeepSeek 4.1 Flash">
+                  <strong>DeepSeek 4.1 Flash</strong><small>deepseek-flash · 多模态</small>
+                </button>
+                <button class="preset-btn" type="button" data-model="glm-4v-flash" data-base="https://open.bigmodel.cn/api/paas/v4" data-name="智谱 GLM-4V-Flash">
+                  <strong>智谱 GLM-4V-Flash</strong><small>glm-4v-flash · 有免费额度</small>
+                </button>
+                <button class="preset-btn" type="button" data-model="gemini-2.5-flash" data-base="https://generativelanguage.googleapis.com/v1beta/openai" data-name="Gemini 2.5 Flash">
+                  <strong>Gemini 2.5 Flash</strong><small>gemini-2.5-flash · 有免费额度</small>
+                </button>
+                <button class="preset-btn" type="button" data-model="Qwen/Qwen2.5-VL-72B-Instruct" data-base="https://api.siliconflow.cn/v1" data-name="硅基流动 Qwen2.5-VL">
+                  <strong>硅基流动 Qwen2.5-VL</strong><small>视觉模型 · 注册送额度</small>
+                </button>
+              </div>
+              <span class="field-hint">按钮只把模型名和接口地址填入表单，不会自动保存。源码包里没有可直接使用的免费 Key；免费额度、模型名和可用性以各平台控制台为准，需自己注册。</span>
+            </div>
+
+            <div class="field">
+              <label class="switch" for="forceDemo">
+                <input type="checkbox" id="forceDemo" name="forceDemo">
+                <span class="switch-track" aria-hidden="true"></span>
+                <span class="switch-label">强制演示模式：即使已填 Key，也直接使用预置批改数据</span>
+              </label>
+              <span class="field-hint">适合课堂展示或网络不稳定时使用；关闭后才会真正发起多模态请求。</span>
+            </div>
+
+            <div class="alert alert-info" style="margin:0;"><span class="alert-icon">i</span><div><strong>多模态说明：</strong>批改时会把作业图片压缩后转为 base64，随提示词一起发送给模型。PDF 目前只记录文件名，演示版请优先上传 JPG / PNG 图片；若接口不支持 PDF，页面会提示“请上传图片”。</div></div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit" id="saveButton">保存设置</button>
+              <button class="btn btn-secondary" type="button" id="testButton">测试连接</button>
+              <span class="small muted" id="testInline"></span>
+            </div>
+            <span class="field-hint">测试成功会自动保存当前 Key、模型与接口地址；测试失败不会覆盖已保存的设置。</span>
+          </div>
+        </form>
+      </section>
+
+      <aside class="stack">
+        <section class="card settings-card">
+          <div class="card-header"><div><h2>当前状态</h2><p>页面加载时读取的接口配置。</p></div></div>
+          <div class="card-body stack">
+            <div class="api-status" id="apiStatus"><span class="status-dot amber"></span><div><strong id="apiStatusTitle">未配置 Key</strong><br><span id="apiStatusText">将自动使用演示数据</span></div></div>
+            <div class="analysis-snippet"><strong>运行方式</strong><p>纯 HTML + CSS + 原生 JavaScript，无需安装依赖。双击 index.html 即可运行；若浏览器限制本地文件读取，请用任意静态文件服务器打开。</p></div>
+            <div class="analysis-snippet"><strong>AIGC 标注</strong><p>本平台的批改评语、共性分析与建议由大模型辅助生成；界面、演示数据与规则由人工设计。正式使用时请教师逐条复核。</p></div>
+          </div>
+        </section>
+
+        <section class="card settings-card">
+          <div class="card-header"><div><h2>当前账号</h2><p>数据仅保存在本机。</p></div></div>
+          <div class="card-body">
+            <div class="analysis-snippet"><strong id="accountName">—</strong><p id="accountMeta">—</p></div>
+            <div class="privacy-note" style="margin-top:10px;"><strong>隐私提醒：</strong>请勿录入真实学生姓名、学号、手写作业原图等敏感信息。比赛或公开演示前，请对素材做脱敏处理并取得授权。</div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <section class="section">
+      <div class="card">
+        <div class="card-header"><div><h2>本地数据概览</h2><p>账号、档案、作业、优秀答案与报告均存储在浏览器 localStorage。</p></div><span class="tag tag-blue">本机数据</span></div>
+        <div class="card-body">
+          <div class="data-stats" id="dataStats"></div>
+          <p class="small muted" style="margin:12px 0 0;">清除浏览器站点数据、更换浏览器或使用无痕模式，都会导致这些数据不可见。重要演示前建议先恢复一次演示数据并完整走一遍流程。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid grid-2">
+        <section class="card danger-zone">
+          <div class="card-header"><div><h2>清空演示数据</h2><p>删除账号、学生档案、作业、优秀答案和报告。</p></div><span class="tag tag-red">不可撤销</span></div>
+          <div class="card-body">
+            <p class="small muted" style="margin:0 0 12px;">清空后会退出登录并回到首页，API Key 与模型设置会保留。适合在正式录入自己的班级数据前重置环境。</p>
+            <button class="btn btn-danger" type="button" id="clearButton">清空演示数据</button>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-header"><div><h2>恢复预置演示数据</h2><p>重新生成演示账号、作业、档案、报告与优秀答案。</p></div><span class="tag tag-green">推荐</span></div>
+          <div class="card-body">
+            <p class="small muted" style="margin:0 0 12px;">会覆盖当前账号和全部作业数据，恢复为 teacher / student / student2 / student3 四个演示账号（密码均为 123456）。恢复后请重新登录。</p>
+            <button class="btn btn-secondary" type="button" id="restoreButton">恢复演示数据</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="alert alert-warning"><span class="alert-icon">!</span><div><strong>比赛提交提醒：</strong>本平台为华中师范大学首届（2026）大学生 AIGC 教学应用竞赛场景下的教学演示原型，不是赛事官方平台。作品说明中请注明访问方式、运行环境、演示账号，并附 AIGC 工具、关键提示词与人工修改说明；讲解视频需≥720P、不超过 8 分钟。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ title: '设置 · 知行化学' });
+      if (!user) return;
+      var isTeacher = user.role === 'teacher';
+      var form = document.getElementById('settingsForm');
+      var apiKey = document.getElementById('apiKey');
+      var model = document.getElementById('model');
+      var apiBase = document.getElementById('apiBase');
+      var forceDemo = document.getElementById('forceDemo');
+      var toggleKey = document.getElementById('toggleKey');
+      var saveButton = document.getElementById('saveButton');
+      var testButton = document.getElementById('testButton');
+      var testInline = document.getElementById('testInline');
+      var saveState = document.getElementById('saveState');
+      var apiStatus = document.getElementById('apiStatus');
+      var apiStatusTitle = document.getElementById('apiStatusTitle');
+      var apiStatusText = document.getElementById('apiStatusText');
+      var backDashboard = document.getElementById('backDashboard');
+
+      backDashboard.href = isTeacher ? 'teacher-dashboard.html' : 'student-dashboard.html';
+      backDashboard.textContent = isTeacher ? '教师工作台' : '学生工作台';
+      document.getElementById('accountName').textContent = user.name + ' · ' + (isTeacher ? '教师' : '学生');
+      document.getElementById('accountMeta').textContent = (user.className || CH.DEMO_CLASS) + ' · ' + (isTeacher ? '可管理本班作业与档案' : '仅可查看本人数据');
+      document.getElementById('logoutLink').addEventListener('click', function (event) {
+        event.preventDefault();
+        CH.logout();
+      });
+
+      function applySettingsToForm() {
+        var settings = CH.getSettings();
+        apiKey.value = settings.apiKey;
+        model.value = settings.model;
+        apiBase.value = settings.apiBase;
+        forceDemo.checked = Boolean(settings.forceDemo);
+        renderStatus(settings);
+      }
+
+      function renderStatus(settings) {
+        var current = settings || CH.getSettings();
+        if (current.apiKey && !current.forceDemo) {
+          apiStatus.querySelector('.status-dot').className = 'status-dot';
+          apiStatusTitle.textContent = '已配置 API Key';
+          apiStatusText.textContent = '模型：' + current.model + ' · 批改时调用真实接口';
+        } else if (current.forceDemo) {
+          apiStatus.querySelector('.status-dot').className = 'status-dot amber';
+          apiStatusTitle.textContent = '强制演示模式';
+          apiStatusText.textContent = '不发起真实请求，直接使用预置批改数据';
+        } else {
+          apiStatus.querySelector('.status-dot').className = 'status-dot amber';
+          apiStatusTitle.textContent = '未配置 API Key';
+          apiStatusText.textContent = '将自动使用演示数据，所有功能可点通';
+        }
+      }
+
+      function renderStats() {
+        var users = CH.getUsers();
+        var students = CH.getStudents();
+        var submissions = CH.getSubmissions();
+        var graded = submissions.filter(function (item) { return item.status === 'graded'; });
+        var pending = submissions.filter(function (item) { return item.status === 'pending'; });
+        var excellent = CH.getActiveExcellent();
+        var reports = CH.getReports();
+        var items = [
+          { label: '账号', value: users.length, hint: '教师 + 学生' },
+          { label: '学生档案', value: students.length, hint: '自动创建' },
+          { label: '作业总数', value: submissions.length, hint: '含待批改' },
+          { label: '已批改', value: graded.length, hint: '含演示批改' },
+          { label: '待批改', value: pending.length, hint: '学生已提交' },
+          { label: '优秀答案', value: excellent.length, hint: '当前展示中' },
+          { label: '共性报告', value: reports.length, hint: '班级报告' },
+          { label: 'API Key', value: CH.getSettings().apiKey ? '已填' : '未填', hint: CH.getSettings().forceDemo ? '强制演示' : '按设置调用' }
+        ];
+        document.getElementById('dataStats').innerHTML = items.map(function (item) {
+          return '<div class="stat-card"><strong>' + CH.escapeHTML(String(item.value)) + '</strong><span>' + CH.escapeHTML(item.label) + '</span><small>' + CH.escapeHTML(item.hint) + '</small></div>';
+        }).join('');
+      }
+
+      applySettingsToForm();
+      renderStats();
+
+      toggleKey.addEventListener('click', function () {
+        var show = apiKey.type === 'password';
+        apiKey.type = show ? 'text' : 'password';
+        toggleKey.textContent = show ? '隐藏' : '显示';
+        toggleKey.setAttribute('aria-label', show ? '隐藏 API Key' : '显示 API Key');
+      });
+
+      apiKey.addEventListener('input', function () { saveState.textContent = '未保存'; saveState.className = 'tag tag-amber'; });
+      model.addEventListener('input', function () { saveState.textContent = '未保存'; saveState.className = 'tag tag-amber'; });
+      apiBase.addEventListener('input', function () { saveState.textContent = '未保存'; saveState.className = 'tag tag-amber'; });
+      forceDemo.addEventListener('change', function () { saveState.textContent = '未保存'; saveState.className = 'tag tag-amber'; });
+
+      // 模型预设：只填表单，不自动保存，避免把“试用某个免费模型”误当成已配置。
+      var presetButtons = document.querySelectorAll('.preset-btn');
+      for (var i = 0; i < presetButtons.length; i += 1) {
+        presetButtons[i].addEventListener('click', function () {
+          model.value = this.getAttribute('data-model') || '';
+          apiBase.value = this.getAttribute('data-base') || '';
+          saveState.textContent = '未保存';
+          saveState.className = 'tag tag-amber';
+          testInline.textContent = '已填入「' + (this.getAttribute('data-name') || '模型预设') + '」，请填写对应平台的 Key，再点“保存设置”或“测试连接”。';
+          CH.toast('已填入模型预设，填写 Key 后记得保存。', 'info');
+        });
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var next = CH.saveSettings({
+          apiKey: apiKey.value,
+          model: model.value,
+          apiBase: apiBase.value,
+          forceDemo: forceDemo.checked
+        });
+        model.value = next.model;
+        apiBase.value = next.apiBase;
+        saveState.textContent = '已保存';
+        saveState.className = 'tag tag-green';
+        renderStatus(next);
+        renderStats();
+        CH.toast('设置已保存到当前浏览器。', 'success');
+      });
+
+      testButton.addEventListener('click', function () {
+        if (!apiKey.value.trim()) {
+          CH.toast('请先填写 API Key，再测试连接。', 'warning');
+          testInline.textContent = '未填写 Key。';
+          return;
+        }
+        testButton.disabled = true;
+        testButton.textContent = '测试中…';
+        testInline.textContent = '正在请求模型接口…';
+        CH.testApiConnection({
+          apiKey: apiKey.value.trim(),
+          model: model.value.trim() || 'deepseek-flash',
+          apiBase: apiBase.value.trim() || CH.DEFAULT_SETTINGS.apiBase
+        }).then(function (result) {
+          testButton.disabled = false;
+          testButton.textContent = '测试连接';
+          if (result.ok) {
+            // 连接成功就把当前输入框的值真正写入 localStorage。
+            // 之前只测试不保存，用户以为“已经配置”，作业页却仍按未配置处理。
+            var saved = CH.saveSettings({
+              apiKey: apiKey.value.trim(),
+              model: model.value.trim() || 'deepseek-flash',
+              apiBase: apiBase.value.trim() || CH.DEFAULT_SETTINGS.apiBase,
+              forceDemo: forceDemo.checked
+            });
+            model.value = saved.model;
+            apiBase.value = saved.apiBase;
+            saveState.textContent = '已保存';
+            saveState.className = 'tag tag-green';
+            renderStatus(saved);
+            renderStats();
+            testInline.textContent = '连接成功，设置已自动保存：' + (result.reply || '模型已响应');
+            CH.toast('连接成功，API 设置已自动保存。', 'success');
+          } else {
+            testInline.textContent = '连接失败：' + result.message;
+            CH.toast('连接失败：' + result.message, 'error');
+          }
+        }).catch(function (error) {
+          testButton.disabled = false;
+          testButton.textContent = '测试连接';
+          testInline.textContent = '连接失败：' + (error.message || '未知错误');
+          CH.toast('连接失败。', 'error');
+        });
+      });
+
+      document.getElementById('clearButton').addEventListener('click', function () {
+        CH.confirmAction({
+          title: '确认清空全部演示数据？',
+          subtitle: '账号、档案、作业、报告都会被删除',
+          message: '此操作不可撤销。API Key 与模型设置会保留。清空后会退出登录并回到首页。',
+          confirmText: '确认清空',
+          danger: true
+        }).then(function (ok) {
+          if (!ok) return;
+          CH.clearDemoData();
+          CH.toast('演示数据已清空，正在返回首页…', 'success');
+          setTimeout(function () { location.href = 'index.html?cleared=1'; }, 700);
+        });
+      });
+
+      document.getElementById('restoreButton').addEventListener('click', function () {
+        CH.confirmAction({
+          title: '恢复预置演示数据？',
+          subtitle: '会覆盖当前账号与全部作业数据',
+          message: '系统将重新生成 4 个演示账号、4 份已批改作业、2 份待批改作业、学生档案、共性报告和优秀答案。恢复后请使用 teacher / student 等演示账号重新登录。',
+          confirmText: '恢复演示数据'
+        }).then(function (ok) {
+          if (!ok) return;
+          CH.seedDemoData(true);
+          CH.toast('演示数据已恢复，正在返回首页…', 'success');
+          setTimeout(function () { location.href = 'index.html?restored=1'; }, 700);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

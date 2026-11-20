@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="优秀答案墙：匿名展示教师标记的优秀作答与评语，学生可学习规范表达，教师可取消展示。">
+  <title>优秀答案墙 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <div class="page-head">
+      <div>
+        <nav class="breadcrumbs" aria-label="面包屑"><a id="backDashboard" href="teacher-dashboard.html">工作台</a><span>/</span><span>优秀答案墙</span></nav>
+        <h1>优秀答案墙</h1>
+        <p id="pageLead">教师从批改结果中挑选思路清晰、表达规范的作答，匿名展示在这里。所有姓名与学号均已隐藏，只保留题目、作答和教师评语。</p>
+      </div>
+      <div class="page-head-actions">
+        <a class="btn btn-primary btn-sm" id="homeworkLink" href="teacher-homework.html">去批改作业</a>
+        <a class="btn btn-ghost btn-sm" href="common-issues.html" id="issuesLink">班级共性分析</a>
+      </div>
+    </div>
+
+    <section class="section" id="wallSection">
+      <div class="card"><div class="card-body"><p class="small muted" style="margin:0;">正在读取优秀答案。</p></div></div>
+    </section>
+
+    <div id="hiddenSection"></div>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>匿名与隐私：</strong>优秀答案墙不显示学生姓名、学号或头像，仅用于同伴互学。若涉及手写原图或真实作业，请先取得学生及监护人授权并做脱敏处理；教师可随时取消展示。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ active: 'excellent', title: '优秀答案墙 · 知行化学' });
+      if (!user) return;
+      var isTeacher = user.role === 'teacher';
+      var className = user.className || CH.DEMO_CLASS;
+      var wallSection = document.getElementById('wallSection');
+      var hiddenSection = document.getElementById('hiddenSection');
+      var backDashboard = document.getElementById('backDashboard');
+      var homeworkLink = document.getElementById('homeworkLink');
+      var issuesLink = document.getElementById('issuesLink');
+      var state = { batch: 'all' };
+
+      backDashboard.href = isTeacher ? 'teacher-dashboard.html' : 'student-dashboard.html';
+      backDashboard.textContent = isTeacher ? '教师工作台' : '学生工作台';
+      homeworkLink.href = isTeacher ? 'teacher-homework.html' : 'student-homework.html';
+      homeworkLink.textContent = isTeacher ? '去批改作业' : '去提交作业';
+      if (!isTeacher) issuesLink.style.display = 'none';
+      document.getElementById('pageLead').textContent = isTeacher
+        ? '你从批改结果中挑选的优秀作答会匿名展示在这里。可取消展示，也可以重新展示已隐藏的答案。'
+        : '这里匿名展示教师挑选的优秀作答与评语。所有姓名与学号均已隐藏，可对照自己的答案学习表达规范。';
+
+      function enrich(item) {
+        var submission = CH.getSubmissionById(item.submissionId);
+        if (!submission) return null;
+        if (submission.className !== className) return null;
+        var batch = CH.getBatch(item.batchId || submission.batchId);
+        return {
+          item: item,
+          submission: submission,
+          batchName: batch ? batch.name : (submission.batchName || '化学作业'),
+          unit: batch ? batch.unit : (submission.unit || '')
+        };
+      }
+
+      function activeEntries() {
+        return CH.getActiveExcellent().map(enrich).filter(Boolean).sort(function (a, b) {
+          return new Date(b.item.createdAt) - new Date(a.item.createdAt);
+        });
+      }
+
+      function hiddenEntries() {
+        if (!isTeacher) return [];
+        return CH.getExcellent().filter(function (item) { return !item.active; }).map(enrich).filter(Boolean).sort(function (a, b) {
+          return new Date(b.item.updatedAt || b.item.createdAt) - new Date(a.item.updatedAt || a.item.createdAt);
+        });
+      }
+
+      function cardHTML(entry, hidden) {
+        var item = entry.item;
+        var answer = String(item.answer || '（该题作答未被记录，请查看原始批改结果。）');
+        var question = String(item.question || '化学作业题目');
+        return '<article class="excellent-card"><p class="quote">班级优秀答案 · 第 ' + CH.escapeHTML(String(item.questionNo)) + ' 题' + (hidden ? ' · 已隐藏' : '') + '</p><h3>' + CH.escapeHTML(question) + '</h3><p class="answer">' + CH.escapeHTML(answer) + '</p><div class="teacher-comment"><strong>教师评语：</strong>' + CH.escapeHTML(item.comment || '思路清晰、表达规范，可作为班级范例。') + '</div><div class="card-bottom"><span>匿名学生 · ' + CH.escapeHTML(entry.batchName) + ' · ' + CH.formatDate(item.createdAt) + '</span>' + (isTeacher ? (hidden ? '<button class="btn btn-ghost btn-sm" type="button" data-show="' + CH.escapeHTML(item.id) + '">重新展示</button>' : '<button class="btn btn-soft-danger btn-sm" type="button" data-hide="' + CH.escapeHTML(item.id) + '">取消展示</button>') : '<span>匿名展示</span>') + '</div></article>';
+      }
+
+      function render() {
+        var all = activeEntries();
+        var batches = {};
+        all.forEach(function (entry) { batches[entry.item.batchId || entry.submission.batchId] = entry.batchName; });
+        var filtered = all.filter(function (entry) { return state.batch === 'all' || (entry.item.batchId || entry.submission.batchId) === state.batch; });
+
+        var filter = all.length ? '<div class="wall-toolbar"><div><strong style="font-size:13px;">共 ' + all.length + ' 条匿名优秀答案</strong><p class="small muted" style="margin:2px 0 0;">按教师标记时间倒序展示，可筛选作业批次。</p></div><select class="input filter-select" id="batchFilter" aria-label="按作业批次筛选"><option value="all">全部作业批次</option>' + Object.keys(batches).map(function (key) {
+          return '<option value="' + CH.escapeHTML(key) + '"' + (state.batch === key ? ' selected' : '') + '>' + CH.escapeHTML(batches[key]) + '</option>';
+        }).join('') + '</select></div>' : '';
+
+        var content;
+        if (!all.length) {
+          content = '<div class="empty-state"><div class="empty-icon">★</div><h3>优秀答案墙还是空的</h3><p>' + (isTeacher ? '在批改结果中勾选“标记为优秀答案”，被选中的作答就会匿名展示在这里。' : '教师尚未展示优秀答案。可以先去完成自己的作业，或在优秀答案墙稍后再来看看。') + '</p><a class="btn btn-primary btn-sm" href="' + (isTeacher ? 'teacher-homework.html' : 'student-homework.html') + '">' + (isTeacher ? '去批改并标记' : '去我的作业') + '</a></div>';
+        } else if (!filtered.length) {
+          content = '<div class="empty-state"><div class="empty-icon">⌕</div><h3>该批次暂无展示</h3><p>换一个作业批次，或点击“全部作业批次”查看所有优秀答案。</p></div>';
+        } else {
+          content = '<div class="wall-grid">' + filtered.map(function (entry) { return cardHTML(entry, false); }).join('') + '</div>';
+        }
+        wallSection.innerHTML = '<div class="section-head"><div><h2>匿名优秀答案</h2><p>只展示教师确认过的作答；点击“取消展示”可立即从墙上移除。</p></div><span class="tag tag-green">同伴互学</span></div>' + (filter ? filter : '') + content;
+
+        var filterNode = document.getElementById('batchFilter');
+        if (filterNode) {
+          filterNode.addEventListener('change', function () {
+            state.batch = filterNode.value;
+            render();
+          });
+        }
+
+        var hidden = hiddenEntries();
+        if (isTeacher && hidden.length) {
+          hiddenSection.innerHTML = '<section class="section"><details class="card"><summary class="card-header" style="cursor:pointer;"><div><h2>已隐藏的答案（' + hidden.length + '）</h2><p>仅教师可见。重新展示后会立即出现在上方答案墙。</p></div><span class="tag tag-gray">教师管理</span></summary><div class="card-body"><div class="wall-grid">' + hidden.map(function (entry) { return cardHTML(entry, true); }).join('') + '</div></div></details></section>';
+        } else {
+          hiddenSection.innerHTML = '';
+        }
+      }
+
+      wallSection.addEventListener('click', function (event) {
+        var hideButton = event.target.closest('[data-hide]');
+        var showButton = event.target.closest('[data-show]');
+        if (hideButton) {
+          var hideId = hideButton.getAttribute('data-hide');
+          CH.confirmAction({
+            title: '取消展示这条优秀答案？',
+            subtitle: '学生端将不再看到这条内容',
+            message: '取消后仍保留在教师端的“已隐藏”列表中，可随时重新展示。',
+            confirmText: '取消展示',
+            danger: true
+          }).then(function (ok) {
+            if (!ok) return;
+            CH.setExcellentActive(hideId, false);
+            CH.toast('已取消展示，可在“已隐藏的答案”中恢复。', 'success');
+            render();
+          });
+        }
+        if (showButton) {
+          CH.setExcellentActive(showButton.getAttribute('data-show'), true);
+          CH.toast('已重新展示到优秀答案墙。', 'success');
+          render();
+        }
+      });
+
+      hiddenSection.addEventListener('click', function (event) {
+        var showButton = event.target.closest('[data-show]');
+        if (!showButton) return;
+        CH.setExcellentActive(showButton.getAttribute('data-show'), true);
+        CH.toast('已重新展示到优秀答案墙。', 'success');
+        render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

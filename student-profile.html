@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="学生档案：批改历史时间线、等级趋势、薄弱点标签与最近解析汇总；教师可查看班级学生，学生仅查看本人。">
+  <title>学生档案 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <div class="page-head">
+      <div>
+        <nav class="breadcrumbs" aria-label="面包屑"><a id="backDashboard" href="teacher-dashboard.html">工作台</a><span>/</span><span id="crumbLabel">学生档案</span></nav>
+        <h1 id="pageTitle">学生档案</h1>
+        <p id="pageLead">查看班级学生的批改历史、等级趋势与薄弱点，为个别化辅导提供依据。档案会随每次批改自动更新。</p>
+      </div>
+      <div class="page-head-actions">
+        <a class="btn btn-ghost btn-sm" href="teacher-homework.html" id="homeworkLink">去批改作业</a>
+        <a class="btn btn-ghost btn-sm" href="common-issues.html">班级共性分析</a>
+        <a class="btn btn-ghost btn-sm" href="excellent-answers.html">优秀答案墙</a>
+      </div>
+    </div>
+
+    <div id="profileLayout" class="profile-layout">
+      <div class="card"><div class="card-body"><p class="small muted" style="margin:0;">正在读取档案。</p></div></div>
+    </div>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>数据说明：</strong>档案由每次批改结果自动汇总，包含等级趋势、薄弱点标签与最近解析。数据仅保存在当前浏览器；教师账号只能查看本班学生，学生账号只能查看本人档案。请勿录入真实师生隐私信息。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ active: 'profile', title: '学生档案 · 知行化学' });
+      if (!user) return;
+      var isTeacher = user.role === 'teacher';
+      var className = user.className || CH.DEMO_CLASS;
+      var layout = document.getElementById('profileLayout');
+      var pageTitle = document.getElementById('pageTitle');
+      var pageLead = document.getElementById('pageLead');
+      var crumbLabel = document.getElementById('crumbLabel');
+      var backDashboard = document.getElementById('backDashboard');
+      var homeworkLink = document.getElementById('homeworkLink');
+
+      backDashboard.href = isTeacher ? 'teacher-dashboard.html' : 'student-dashboard.html';
+      backDashboard.textContent = isTeacher ? '教师工作台' : '学生工作台';
+      homeworkLink.href = isTeacher ? 'teacher-homework.html' : 'student-homework.html';
+      homeworkLink.textContent = isTeacher ? '去批改作业' : '去提交作业';
+
+      var params = new URLSearchParams(location.search);
+      var requestedId = params.get('studentId');
+      var ownStudent = !isTeacher ? CH.getStudentByUserId(user.id) : null;
+
+      function allClassStudents() {
+        return CH.getClassStudents(className).slice().sort(function (a, b) { return a.studentId.localeCompare(b.studentId); });
+      }
+
+      function currentStudent() {
+        if (!isTeacher) return ownStudent;
+        var list = allClassStudents();
+        var found = requestedId ? list.filter(function (item) { return item.studentId === requestedId; })[0] : null;
+        return found || list[0] || null;
+      }
+
+      function gradedSubmissions(studentId) {
+        return CH.getSubmissions().filter(function (item) {
+          return item.studentId === studentId && item.status === 'graded' && item.result;
+        }).sort(function (a, b) { return new Date(b.gradedAt || b.submittedAt) - new Date(a.gradedAt || a.submittedAt); });
+      }
+
+      function countWeakTags(subs) {
+        var counts = {};
+        subs.forEach(function (item) {
+          (item.result.weakTags || []).forEach(function (tag) {
+            counts[tag] = (counts[tag] || 0) + 1;
+          });
+        });
+        return Object.keys(counts).map(function (tag) { return { tag: tag, count: counts[tag] }; }).sort(function (a, b) {
+          if (b.count !== a.count) return b.count - a.count;
+          return a.tag.localeCompare(b.tag, 'zh-CN');
+        });
+      }
+
+      function renderTeacherSidebar(selected) {
+        var list = allClassStudents();
+        return '<aside class="stack"><section class="card"><div class="card-header"><div><h2>班级学生</h2><p>' + CH.escapeHTML(className) + ' · 共 ' + list.length + ' 人</p></div><span class="tag tag-blue">教师视图</span></div><div class="card-body"><div class="field" style="margin-bottom:10px;"><input class="input" id="studentSearch" type="search" placeholder="搜索姓名或学号…" aria-label="搜索学生"></div><div class="student-list" id="studentList">' + list.map(function (student) {
+          var stats = CH.getStudentStats(student.studentId);
+          var subs = gradedSubmissions(student.studentId);
+          var latestGrade = subs[0] && subs[0].result ? subs[0].result.grade : '—';
+          return '<a class="student-item ' + (selected && selected.studentId === student.studentId ? 'is-active' : '') + '" href="student-profile.html?studentId=' + encodeURIComponent(student.studentId) + '" data-search="' + CH.escapeHTML(student.name + ' ' + student.studentId) + '"><span class="student-avatar">' + CH.escapeHTML(String(student.name || '学').slice(0, 1)) + '</span><span class="student-meta"><strong>' + CH.escapeHTML(student.name) + '</strong><small>' + CH.escapeHTML(student.studentId) + ' · 平均 ' + (stats.average || '—') + ' 分</small></span><span class="mini-grade">' + CH.escapeHTML(latestGrade) + '</span></a>';
+        }).join('') + '</div></div></section><section class="card"><div class="card-header"><div><h2>班级概览</h2><p>基于本班已批改作业。</p></div></div><div class="card-body" id="classOverview"></div></section></aside>';
+      }
+
+      function renderClassOverview() {
+        var list = allClassStudents();
+        var allSubs = CH.getSubmissions().filter(function (item) {
+          return item.className === className && item.status === 'graded' && item.result;
+        });
+        var average = allSubs.length ? Math.round(allSubs.reduce(function (sum, item) { return sum + (Number(item.result.score) || 0); }, 0) / allSubs.length) : 0;
+        var pending = CH.getSubmissions().filter(function (item) { return item.className === className && item.status === 'pending'; }).length;
+        var box = document.getElementById('classOverview');
+        if (box) {
+          box.innerHTML = '<div class="profile-stats"><div class="profile-stat"><strong>' + (average || '—') + '</strong><small>班级平均分</small></div><div class="profile-stat"><strong>' + allSubs.length + '</strong><small>已批改作业</small></div><div class="profile-stat"><strong>' + pending + '</strong><small>待批改</small></div></div><p class="small muted" style="margin:12px 0 0;">点击左侧学生查看完整档案；生成共性报告可进入“班级共性分析”。</p>';
+        }
+      }
+
+      function adviceFromWeak(weak) {
+        if (!weak.length) return '目前没有明显薄弱点。建议保持“先审题、再作答、最后检查守恒与规范”的习惯，并尝试更高阶的变式题。';
+        var top = weak.slice(0, 2).map(function (item) { return item.tag; });
+        return '优先复习「' + top.join('」「') + '」。建议先重看对应题目的错因与正确思路，再独立重做一遍，并用一道同类变式题检验是否真正掌握。';
+      }
+
+      function renderProfile(student) {
+        if (!student) {
+          return '<div class="card"><div class="empty-state"><div class="empty-icon">◫</div><h3>暂无可查看的档案</h3><p>' + (isTeacher ? '本班还没有学生档案。请先注册学生账号或恢复演示数据。' : '未找到你的学生档案，请退出后重新注册。') + '</p><a class="btn btn-secondary btn-sm" href="settings.html">前往设置</a></div></div>';
+        }
+        var subs = gradedSubmissions(student.studentId);
+        var stats = CH.getStudentStats(student.studentId);
+        var weak = countWeakTags(subs);
+        var trend = student.gradeTrend && student.gradeTrend.length ? student.gradeTrend : subs.slice().reverse().map(function (item) {
+          return { date: item.gradedAt || item.submittedAt, score: item.result.score, grade: item.result.grade, batchName: item.batchName };
+        });
+        var resultBase = isTeacher ? 'teacher-homework.html?submission=' : 'student-homework.html?submission=';
+        var timeline = subs.map(function (item) {
+          var tags = (item.result.weakTags || []).slice(0, 3).map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join(' ');
+          return '<div class="timeline-item"><div class="timeline-dot">' + CH.escapeHTML(item.result.grade) + '</div><div class="timeline-body"><div class="timeline-head"><strong>' + CH.escapeHTML(item.batchName) + '</strong><time>' + CH.formatDate(item.gradedAt || item.submittedAt, true) + '</time></div><div class="timeline-meta"><span>得分 ' + CH.escapeHTML(String(item.result.score)) + ' / 100</span><span>' + CH.escapeHTML(item.unit || '') + '</span><span>' + (item.result.isMock ? '演示批改' : 'AI 多模态批改') + '</span><a href="' + resultBase + encodeURIComponent(item.id) + '">查看解析 →</a></div><div class="tag-list" style="margin-top:7px;">' + (tags || '<span class="tag tag-gray">本次无明显薄弱点</span>') + '</div></div></div>';
+        }).join('');
+
+        var recent = [];
+        subs.slice(0, 3).forEach(function (item) {
+          (item.result.questions || []).forEach(function (q) {
+            if (q.verdict !== '正确' && recent.length < 4) {
+              recent.push({ question: q, submission: item });
+            }
+          });
+        });
+        var snippets = recent.map(function (entry) {
+          var q = entry.question;
+          var sub = entry.submission;
+          return '<div class="analysis-snippet"><strong>第 ' + CH.escapeHTML(String(q.no)) + ' 题 · ' + CH.escapeHTML(q.tag || q.errorType || '待巩固') + ' · ' + CH.escapeHTML(q.verdict) + '</strong><p>' + CH.escapeHTML(CH.truncate(q.question, 72)) + '</p><p><span class="muted">错因：</span>' + CH.escapeHTML(CH.truncate(q.reason, 92)) + '</p><p><span class="muted">正确思路：</span>' + CH.escapeHTML(CH.truncate(q.correctApproach, 110)) + '</p><p class="small"><a href="' + resultBase + encodeURIComponent(sub.id) + '">查看完整解析 →</a></p></div>';
+        }).join('');
+
+        return '<div class="stack">' +
+          '<section class="card"><div class="profile-head"><div class="profile-avatar">' + CH.escapeHTML(String(student.name || '学').slice(0, 1)) + '</div><div class="profile-title"><h2>' + CH.escapeHTML(student.name) + '</h2><div class="profile-id">' + CH.escapeHTML(student.studentId) + ' · ' + CH.escapeHTML(student.className) + ' · ' + CH.escapeHTML(user.school || CH.DEMO_SCHOOL) + '</div><p class="small muted" style="margin:7px 0 0;">档案更新于 ' + CH.formatDate(student.updatedAt || student.createdAt, true) + ' · ' + (isTeacher ? '教师视图' : '仅本人可见') + '</p></div><div class="profile-stats"><div class="profile-stat"><strong>' + (stats.average || '—') + '</strong><small>平均分</small></div><div class="profile-stat"><strong>' + stats.graded + '</strong><small>已批改</small></div><div class="profile-stat"><strong>' + (stats.highest || '—') + '</strong><small>最高分</small></div><div class="profile-stat"><strong>' + weak.length + '</strong><small>薄弱点</small></div></div></div>' +
+          '<div class="card-body stack">' +
+          '<div class="grid grid-2"><div class="card trend-card" style="box-shadow:none;"><div class="section-head" style="margin:0 0 8px;"><div><h2>等级趋势</h2><p>按批改时间顺序展示分数变化。</p></div></div>' + CH.buildTrendSVG(trend) + '</div><div class="card trend-card" style="box-shadow:none;"><div class="section-head" style="margin:0 0 8px;"><div><h2>薄弱点标签</h2><p>出现次数越多，越应优先复习。</p></div></div>' + (weak.length ? '<div class="tag-list">' + weak.map(function (item) { return '<span class="tag tag-weak">' + CH.escapeHTML(item.tag) + ' ×' + item.count + '</span>'; }).join('') + '</div>' : '<p class="small muted" style="margin:0;">暂无薄弱点，继续保持。</p>') + '<div class="overall-box" style="margin-top:12px;"><strong>个别化建议</strong>' + CH.escapeHTML(adviceFromWeak(weak)) + '</div></div></div>' +
+          '<div class="section-head" style="margin:4px 0 0;"><div><h2>批改历史时间线</h2><p>从最近一次批改向前回溯，点击可查看完整解析。</p></div><span class="tag tag-gray">' + subs.length + ' 条记录</span></div>' +
+          (subs.length ? '<div class="timeline">' + timeline + '</div>' : '<div class="empty-state" style="padding:26px;"><div class="empty-icon">◷</div><h3>还没有批改记录</h3><p>完成并提交一份作业后，时间线会自动生成。</p><a class="btn btn-primary btn-sm" href="' + (isTeacher ? 'teacher-homework.html' : 'student-homework.html') + '">' + (isTeacher ? '去批改作业' : '去提交作业') + '</a></div>') +
+          '<div class="section-head" style="margin:8px 0 0;"><div><h2>最近解析汇总</h2><p>从最近几份作业中抽取仍需巩固的题目，便于面批与个别辅导。</p></div></div>' +
+          (snippets || '<div class="analysis-snippet"><strong>最近没有需要重点订正的题目</strong><p>可以尝试更高阶的变式题，或把已做对的题目讲给同学听，检验是否真正理解。</p></div>') +
+          '</div></section>' +
+          (isTeacher ? '<section class="card"><div class="card-header"><div><h2>教师操作</h2><p>针对该生的下一步教学动作。</p></div></div><div class="card-body"><div class="form-actions"><a class="btn btn-primary btn-sm" href="teacher-homework.html">上传新作业批改</a><a class="btn btn-secondary btn-sm" href="common-issues.html">查看班级共性报告</a><a class="btn btn-ghost btn-sm" href="excellent-answers.html">查看优秀答案</a></div><p class="small muted" style="margin:10px 0 0;">如需面批，可打印该生最近一次解析，结合原卷逐题核对。</p></div></section>' : '') +
+          '</div>';
+      }
+
+      function refreshView() {
+        var list = allClassStudents();
+        var student = currentStudent();
+        if (isTeacher && requestedId && (!student || student.studentId !== requestedId)) {
+          CH.toast('未找到该学生，已显示本班第一位学生。', 'warning');
+        }
+        if (!isTeacher && !student) {
+          layout.innerHTML = '<div class="card"><div class="empty-state"><div class="empty-icon">!</div><h3>未找到学生档案</h3><p>请退出后重新注册学生账号，或在设置页恢复演示数据。</p><a class="btn btn-secondary btn-sm" href="settings.html">前往设置</a></div></div>';
+          return;
+        }
+        pageTitle.textContent = isTeacher ? '学生档案' : '我的档案';
+        pageLead.textContent = isTeacher
+          ? '查看班级学生的批改历史、等级趋势与薄弱点，为个别化辅导提供依据。档案会随每次批改自动更新。'
+          : '这里汇总你的批改历史、等级趋势、薄弱点与最近解析。每次教师完成批改后，档案会自动更新。';
+        crumbLabel.textContent = isTeacher ? '学生档案' : '我的档案';
+
+        if (isTeacher) {
+          layout.innerHTML = renderTeacherSidebar(student) + '<div id="profileMain">' + renderProfile(student) + '</div>';
+          renderClassOverview();
+          var search = document.getElementById('studentSearch');
+          if (search) {
+            search.addEventListener('input', function () {
+              var keyword = search.value.trim().toLowerCase();
+              Array.prototype.forEach.call(document.querySelectorAll('#studentList .student-item'), function (item) {
+                var text = String(item.getAttribute('data-search') || '').toLowerCase();
+                item.style.display = !keyword || text.indexOf(keyword) >= 0 ? '' : 'none';
+              });
+            });
+          }
+        } else {
+          layout.style.gridTemplateColumns = '1fr';
+          layout.innerHTML = '<div id="profileMain">' + renderProfile(student) + '</div>';
+        }
+      }
+
+      if (isTeacher && !allClassStudents().length) {
+        pageTitle.textContent = '学生档案';
+        layout.innerHTML = '<div class="card"><div class="empty-state"><div class="empty-icon">◫</div><h3>本班还没有学生</h3><p>请先注册学生账号，或在设置页恢复演示数据。</p><a class="btn btn-secondary btn-sm" href="settings.html">前往设置</a></div></div>';
+        return;
+      }
+      refreshView();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="教师工作台：待批改作业、班级学情、共性分析与教学模块入口。">
+  <title>教师工作台 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">教师工作台 · 作业与评价</span>
+          <h1>早上好，<span data-user-name>老师</span>。<br>今天也从一份作业开始。</h1>
+          <p>把批改交给 AI 做“第一遍”，把判断与讲评留给自己。上传学生作业照片，获得等级、三维度评语与逐题解析；勾选多份结果，即可生成班级共性分析。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="teacher-homework.html">开始批改作业 →</a>
+            <a class="btn btn-ghost btn-lg" href="common-issues.html">查看共性分析</a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><strong id="statPending">0</strong><small>待批改作业</small></div>
+            <div class="hero-stat"><strong id="statGraded">0</strong><small>已完成批改</small></div>
+            <div class="hero-stat"><strong id="statStudents">0</strong><small>班级学生</small></div>
+          </div>
+        </div>
+        <aside class="hero-side" aria-label="今日教学提示">
+          <span class="hero-side-title">今日提示</span>
+          <div class="hero-mini">
+            <span class="hero-mini-icon">✎</span>
+            <div><strong id="sidePending">先处理待批改作业</strong><small>批改后档案与趋势会自动更新</small></div>
+          </div>
+          <div class="hero-mini">
+            <span class="hero-mini-icon">▦</span>
+            <div><strong>共性问题值得讲评</strong><small>勾选 2 份以上作业即可生成报告</small></div>
+          </div>
+          <div class="hero-mini">
+            <span class="hero-mini-icon">◎</span>
+            <div><strong id="apiState">演示数据已就绪</strong><small id="apiHint">未配置 Key 也能完整演示</small></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>待批改作业</h2><p>来自本班学生的最新提交，按提交时间排序。</p></div>
+        <a class="section-link" href="teacher-homework.html">进入批改工作台 →</a>
+      </div>
+      <div class="card">
+        <div class="card-body" id="pendingList">
+          <div class="empty-state"><div class="empty-icon">✓</div><h3>正在读取待批改作业</h3><p>请稍候。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>核心工作入口</h2><p>围绕“批改—档案—分析—示范”的完整闭环。</p></div>
+        <a class="section-link" href="settings.html">平台设置 →</a>
+      </div>
+      <div class="grid grid-4">
+        <a class="card card-pad card accent" href="teacher-homework.html" style="color:inherit;">
+          <div class="stat-icon">✎</div>
+          <h3 style="margin:12px 0 5px;font-size:15px;">作业批改</h3>
+          <p class="small muted" style="margin:0;">上传图片或 PDF，AI 多模态批改，支持逐题复核与优秀答案标记。</p>
+          <div class="cluster" style="margin-top:12px;"><span class="tag">核心模块</span><span class="tag tag-amber">AI 批改</span></div>
+        </a>
+        <a class="card card-pad" href="student-profile.html" style="color:inherit;">
+          <div class="stat-icon teal">◫</div>
+          <h3 style="margin:12px 0 5px;font-size:15px;">学生档案</h3>
+          <p class="small muted" style="margin:0;">查看批改历史、等级趋势、薄弱点标签与最近解析汇总。</p>
+          <div class="cluster" style="margin-top:12px;"><span class="tag tag-green">成长轨迹</span></div>
+        </a>
+        <a class="card card-pad" href="common-issues.html" style="color:inherit;">
+          <div class="stat-icon gold">▦</div>
+          <h3 style="margin:12px 0 5px;font-size:15px;">共性分析</h3>
+          <p class="small muted" style="margin:0;">高频错误 Top 5、匿名典型错误与课堂补救建议。</p>
+          <div class="cluster" style="margin-top:12px;"><span class="tag tag-amber">班级学情</span></div>
+        </a>
+        <a class="card card-pad" href="excellent-answers.html" style="color:inherit;">
+          <div class="stat-icon red">★</div>
+          <h3 style="margin:12px 0 5px;font-size:15px;">优秀答案</h3>
+          <p class="small muted" style="margin:0;">匿名展示教师标记的优秀作答与评语，可随时取消展示。</p>
+          <div class="cluster" style="margin-top:12px;"><span class="tag">示范引领</span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>最近批改记录</h2><p>批改结果会自动写入学生档案，并参与班级共性分析。</p></div>
+        <a class="section-link" href="student-profile.html">查看全部档案 →</a>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>学生</th><th>作业批次</th><th>等级</th><th>薄弱点</th><th>批改时间</th><th>操作</th></tr></thead>
+            <tbody id="recentBody"><tr><td colspan="6" class="table-empty">正在读取批改记录……</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>教学模块</h2><p>“作业与评价”与“课后答疑”已完整实现；课堂教学已接入实验仿真；教学设计为演示占位页。</p></div>
+      </div>
+      <div class="grid grid-3">
+        <a class="assignment-card" href="teaching-design.html">
+          <div><p class="assignment-title">✎ 教学设计</p><div class="assignment-meta"><span>AI 辅助备课</span><span>单元设计</span><span class="tag tag-gray">待扩展</span></div></div>
+          <span class="btn btn-ghost btn-sm">进入</span>
+        </a>
+        <a class="assignment-card" href="classroom-teaching.html">
+          <div><p class="assignment-title">▤ 课堂教学</p><div class="assignment-meta"><span>实验仿真</span><span>互动课堂</span><span class="tag tag-green">已上线</span></div></div>
+          <span class="btn btn-ghost btn-sm">进入</span>
+        </a>
+        <a class="assignment-card" href="after-school-service.html">
+          <div><p class="assignment-title">☾ 课后服务</p><div class="assignment-meta"><span>步进式答疑</span><span>多模态识题</span><span class="tag tag-green">已上线</span></div></div>
+          <span class="btn btn-ghost btn-sm">进入</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="alert alert-info">
+        <span class="alert-icon">i</span>
+        <div><strong>演示提示：</strong>本页数据来自预置演示数据和当前浏览器的 localStorage。未填写 API Key 时，所有批改按钮仍可使用预置结果完整演示；填写 Key 后可在设置页测试连接并切换真实多模态批改。AIGC 结果请务必人工复核。</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ role: 'teacher', active: 'dashboard', title: '教师工作台 · 知行化学' });
+      if (!user) return;
+
+      var submissions = CH.getSubmissions();
+      var classStudents = CH.getClassStudents(user.className);
+      var pending = submissions.filter(function (item) { return item.className === user.className && item.status === 'pending'; });
+      var graded = submissions.filter(function (item) { return item.className === user.className && item.status === 'graded'; });
+      var excellent = CH.getActiveExcellent();
+
+      document.getElementById('statPending').textContent = pending.length;
+      document.getElementById('statGraded').textContent = graded.length;
+      document.getElementById('statStudents').textContent = classStudents.length;
+      document.getElementById('sidePending').textContent = pending.length ? ('还有 ' + pending.length + ' 份作业待批改') : '待批改队列已清空';
+
+      var settings = CH.getSettings();
+      if (!settings.apiKey) {
+        document.getElementById('apiState').textContent = '演示模式已就绪';
+        document.getElementById('apiHint').textContent = '未配置 Key，自动使用演示批改';
+      } else if (settings.forceDemo) {
+        document.getElementById('apiState').textContent = '已锁定演示模式';
+        document.getElementById('apiHint').textContent = '设置页已开启“仅使用演示数据”';
+      } else {
+        document.getElementById('apiState').textContent = 'DeepSeek 已配置';
+        document.getElementById('apiHint').textContent = '模型：' + settings.model;
+      }
+
+      var pendingBox = document.getElementById('pendingList');
+      if (!pending.length) {
+        pendingBox.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><h3>待批改队列已清空</h3><p>可以查看学生档案、生成共性分析，或到优秀答案墙挑选示范作答。</p><a class="btn btn-secondary btn-sm" href="student-profile.html">查看学生档案</a></div>';
+      } else {
+        pending.sort(function (a, b) { return new Date(b.submittedAt) - new Date(a.submittedAt); });
+        pendingBox.innerHTML = '<div class="pending-list">' + pending.map(function (item) {
+          return '<div class="pending-item"><div class="pending-info"><strong>' + CH.escapeHTML(item.studentName) + ' · ' + CH.escapeHTML(item.batchName) + '</strong><small>' + CH.escapeHTML(item.unit || '') + ' · 提交于 ' + CH.formatDate(item.submittedAt, true) + (item.selfReport ? ' · 自述：' + CH.escapeHTML(CH.truncate(item.selfReport, 36)) : '') + '</small></div><a class="btn btn-primary btn-sm" href="teacher-homework.html?submission=' + encodeURIComponent(item.id) + '">去批改</a></div>';
+        }).join('') + '</div>';
+      }
+
+      var recentBody = document.getElementById('recentBody');
+      var recent = graded.slice().sort(function (a, b) { return new Date(b.gradedAt) - new Date(a.gradedAt); }).slice(0, 6);
+      if (!recent.length) {
+        recentBody.innerHTML = '<tr><td colspan="6" class="table-empty">还没有已批改作业，先去批改一份吧。</td></tr>';
+      } else {
+        recentBody.innerHTML = recent.map(function (item) {
+          var tags = (item.result && item.result.weakTags || []).slice(0, 2).map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join(' ');
+          return '<tr><td><div class="cell-main">' + CH.escapeHTML(item.studentName) + '</div><div class="cell-sub">' + CH.escapeHTML(item.studentId) + '</div></td><td><div class="cell-main">' + CH.escapeHTML(item.batchName) + '</div><div class="cell-sub">' + CH.escapeHTML(item.unit || '') + '</div></td><td><span class="grade-badge ' + CH.gradeClass(item.result.grade) + '">' + CH.escapeHTML(item.result.grade) + '</span></td><td>' + (tags || '<span class="muted small">—</span>') + '</td><td class="small muted">' + CH.formatDate(item.gradedAt, true) + '</td><td><a class="btn btn-ghost btn-sm" href="teacher-homework.html?submission=' + encodeURIComponent(item.id) + '">查看结果</a></td></tr>';
+        }).join('');
+      }
+    })();
+  </script>
+</body>
+</html>

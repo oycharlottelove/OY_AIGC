@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="知行化学 · 高中化学智慧教学平台：AI 多模态作业批改、学生档案、共性分析与优秀答案墙。">
+  <title>知行化学 · 高中化学智慧教学平台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+  <a class="skip-link" href="#authCard">跳到登录表单</a>
+
+  <div class="page-shell auth-topbar">
+    <a class="brand" href="index.html" aria-label="知行化学首页">
+      <span class="brand-mark">化</span>
+      <span class="brand-text"><strong>知行化学</strong><small>高中化学智慧教学平台</small></span>
+    </a>
+    <span class="auth-topbar-note">教学演示原型 · 数据仅保存在本机浏览器</span>
+  </div>
+
+  <main class="page-shell">
+    <div class="auth-wrap">
+      <section class="auth-intro" aria-label="平台介绍">
+        <div>
+          <span class="intro-badge">✧ AIGC × 高中化学 · 作业与评价</span>
+          <h1 class="intro-title">让每一次批改，<br>都成为<span>教学的起点</span>。</h1>
+          <p class="intro-lead">面向高中化学真实课堂，用多模态大模型读懂学生手写作业：给出等级、三维度评语与逐题解析，自动沉淀学生档案，并把个体错误汇成班级共性分析。</p>
+
+          <div class="intro-points">
+            <div class="intro-point">
+              <span class="intro-point-icon">✓</span>
+              <div><strong>多模态批改，不只给一个分数</strong><small>识别图片中的化学方程式与计算过程，区分箭头、配平、步骤与规范。</small></div>
+            </div>
+            <div class="intro-point">
+              <span class="intro-point-icon">↗</span>
+              <div><strong>从一次作业，看见成长轨迹</strong><small>批改结果自动写入学生档案，生成等级趋势、薄弱点标签与最近解析。</small></div>
+            </div>
+            <div class="intro-point">
+              <span class="intro-point-icon">◎</span>
+              <div><strong>从个体错误，走向课堂改进</strong><small>勾选多份作业生成共性问题报告，匿名展示优秀作答，服务教学决策。</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="intro-note">
+          <span>◈ 纯网页 · 无需安装</span>
+          <span>◈ 未填 Key 自动使用演示数据</span>
+          <span>◈ 学生信息匿名化展示</span>
+        </div>
+      </section>
+
+      <section class="auth-card" id="authCard" aria-label="登录与注册">
+        <div class="auth-session-banner" id="sessionBanner" hidden>
+          <span id="sessionText">你已登录。</span>
+          <a href="#" id="continueLink">进入工作台 →</a>
+        </div>
+
+        <div class="auth-card-head">
+          <h2 id="authTitle">欢迎回来</h2>
+          <p id="authSubtitle">登录后进入你的教学工作台或学习工作台。</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="登录或注册">
+          <button class="auth-tab" type="button" role="tab" data-auth-tab="login" aria-selected="true" aria-controls="loginPanel">登录</button>
+          <button class="auth-tab" type="button" role="tab" data-auth-tab="register" aria-selected="false" aria-controls="registerPanel">注册新账号</button>
+        </div>
+
+        <div class="alert alert-info" id="authAlert" hidden></div>
+
+        <div class="alert alert-warning" id="restoreBar" hidden>
+          <span class="alert-icon">!</span>
+          <div style="flex:1;">
+            <strong>演示数据已清空。</strong> 可以重新注册账号，或一键恢复预置的教师/学生演示数据。
+            <div style="margin-top:8px;"><button class="btn btn-secondary btn-sm" type="button" id="restoreDemo">恢复预置演示数据</button></div>
+          </div>
+        </div>
+
+        <form class="auth-form" id="loginForm" autocomplete="on" novalidate>
+          <div class="field">
+            <label>选择身份</label>
+            <div class="role-choice">
+              <label class="role-option">
+                <input type="radio" name="loginRole" value="student" checked>
+                <span class="role-title">◈ 学生</span>
+                <span class="role-desc">提交作业 · 查看批改 · 我的档案</span>
+              </label>
+              <label class="role-option">
+                <input type="radio" name="loginRole" value="teacher">
+                <span class="role-title">✎ 教师</span>
+                <span class="role-desc">批改作业 · 共性分析 · 学生档案</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="loginUsername">账号</label>
+            <input class="input" id="loginUsername" name="username" type="text" placeholder="请输入教师或学生账号" autocomplete="username" required>
+          </div>
+
+          <div class="field">
+            <label for="loginPassword">密码</label>
+            <input class="input" id="loginPassword" name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required>
+            <span class="field-hint">演示账号的密码均为 123456。</span>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block" type="submit">登录并进入工作台</button>
+
+          <div class="demo-accounts">
+            <span>演示账号 · 点击自动填入</span>
+            <div class="demo-account-row">
+              <button class="demo-account" type="button" data-demo="teacher">教师：teacher / 123456</button>
+              <button class="demo-account" type="button" data-demo="student">学生：student / 123456</button>
+              <button class="demo-account" type="button" data-demo="student2">学生：student2 / 123456</button>
+            </div>
+          </div>
+        </form>
+
+        <form class="auth-form" id="registerForm" autocomplete="on" novalidate hidden>
+          <div class="field">
+            <label>注册身份</label>
+            <div class="role-choice">
+              <label class="role-option">
+                <input type="radio" name="registerRole" value="student" checked>
+                <span class="role-title">◈ 学生</span>
+                <span class="role-desc">自动创建学生档案</span>
+              </label>
+              <label class="role-option">
+                <input type="radio" name="registerRole" value="teacher">
+                <span class="role-title">✎ 教师</span>
+                <span class="role-desc">管理班级与作业批改</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="registerName">姓名 <span class="required">*</span></label>
+              <input class="input" id="registerName" name="name" type="text" placeholder="例如：王小明" maxlength="20" required>
+            </div>
+            <div class="field">
+              <label for="registerClass">班级</label>
+              <input class="input" id="registerClass" name="className" type="text" value="高一（3）班" maxlength="24">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="registerUsername">账号 <span class="required">*</span></label>
+            <input class="input" id="registerUsername" name="username" type="text" placeholder="3—20 位字母、数字、中文或下划线" autocomplete="username" required>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="registerPassword">密码 <span class="required">*</span></label>
+              <input class="input" id="registerPassword" name="password" type="password" placeholder="至少 6 位" autocomplete="new-password" required>
+            </div>
+            <div class="field">
+              <label for="registerConfirm">确认密码 <span class="required">*</span></label>
+              <input class="input" id="registerConfirm" name="confirm" type="password" placeholder="再次输入密码" autocomplete="new-password" required>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block" type="submit">创建账号并进入工作台</button>
+          <p class="field-hint" style="margin:0;">注册成功后，学生账号会自动生成学生档案；教师账号可查看本班学生档案。演示数据会保留，可随时在设置页清空。</p>
+        </form>
+
+        <div class="auth-footer">
+          本平台为教学演示原型，所有账号、作业与批改结果仅保存在当前浏览器本地，请勿录入真实师生隐私信息。AIGC 生成内容需由教师人工复核。
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      CH.seedDemoData();
+      CH.renderFooter();
+
+      var loginForm = document.getElementById('loginForm');
+      var registerForm = document.getElementById('registerForm');
+      var alertBox = document.getElementById('authAlert');
+      var title = document.getElementById('authTitle');
+      var subtitle = document.getElementById('authSubtitle');
+      var sessionBanner = document.getElementById('sessionBanner');
+      var sessionText = document.getElementById('sessionText');
+      var continueLink = document.getElementById('continueLink');
+      var restoreBar = document.getElementById('restoreBar');
+      var restoreDemoBtn = document.getElementById('restoreDemo');
+
+      restoreDemoBtn.addEventListener('click', function () {
+        CH.seedDemoData(true);
+        CH.toast('预置演示数据已恢复。', 'success');
+        setTimeout(function () { location.href = 'index.html?restored=1'; }, 500);
+      });
+
+      function showAlert(message, type) {
+        alertBox.className = 'alert alert-' + (type || 'danger');
+        alertBox.innerHTML = '<span class="alert-icon">' + (type === 'success' ? '✓' : '!') + '</span><div>' + CH.escapeHTML(message) + '</div>';
+        alertBox.hidden = false;
+      }
+
+      function hideAlert() {
+        alertBox.hidden = true;
+      }
+
+      var current = CH.getCurrentUser();
+      if (current) {
+        sessionBanner.hidden = false;
+        sessionText.textContent = '当前已登录：' + current.name + '（' + (current.role === 'teacher' ? '教师' : '学生') + ' · ' + (current.className || CH.DEMO_CLASS) + '）';
+        continueLink.href = CH.dashboardFor(current.role);
+      }
+
+      var params = new URLSearchParams(location.search);
+      if (params.get('logout') === '1') {
+        CH.toast('已安全退出，本地数据仍保留。', 'success');
+      }
+      if (params.get('reason') === 'auth') {
+        sessionBanner.hidden = true;
+        CH.toast('请先登录后再访问该页面。', 'warning');
+      }
+      if (params.get('cleared') === '1') {
+        restoreBar.hidden = false;
+        CH.toast('演示数据已清空，可重新注册或一键恢复演示数据。', 'warning');
+      }
+      if (params.get('restored') === '1') {
+        CH.toast('预置演示数据已恢复，可用演示账号重新登录。', 'success');
+      }
+      if (params.get('tab') === 'register') {
+        switchTab('register');
+      }
+
+      function switchTab(name) {
+        var tabs = document.querySelectorAll('[data-auth-tab]');
+        for (var i = 0; i < tabs.length; i += 1) {
+          tabs[i].setAttribute('aria-selected', tabs[i].getAttribute('data-auth-tab') === name ? 'true' : 'false');
+        }
+        loginForm.hidden = name !== 'login';
+        registerForm.hidden = name !== 'register';
+        if (name === 'login') {
+          title.textContent = '欢迎回来';
+          subtitle.textContent = '登录后进入你的教学工作台或学习工作台。';
+        } else {
+          title.textContent = '创建你的账号';
+          subtitle.textContent = '选择身份，几步完成注册；学生账号会自动建立档案。';
+        }
+        hideAlert();
+      }
+
+      var tabs = document.querySelectorAll('[data-auth-tab]');
+      for (var i = 0; i < tabs.length; i += 1) {
+        tabs[i].addEventListener('click', function () {
+          switchTab(this.getAttribute('data-auth-tab'));
+        });
+      }
+
+      function setLoginRole(role) {
+        var options = loginForm.querySelectorAll('input[name="loginRole"]');
+        for (var i = 0; i < options.length; i += 1) options[i].checked = options[i].value === role;
+        var regOptions = registerForm.querySelectorAll('input[name="registerRole"]');
+        for (var j = 0; j < regOptions.length; j += 1) regOptions[j].checked = regOptions[j].value === role;
+      }
+
+      var demoButtons = document.querySelectorAll('[data-demo]');
+      for (var d = 0; d < demoButtons.length; d += 1) {
+        demoButtons[d].addEventListener('click', function () {
+          var account = this.getAttribute('data-demo');
+          var demo = {
+            teacher: { username: 'teacher', role: 'teacher', password: '123456' },
+            student: { username: 'student', role: 'student', password: '123456' },
+            student2: { username: 'student2', role: 'student', password: '123456' }
+          }[account];
+          if (!demo) return;
+          switchTab('login');
+          setLoginRole(demo.role);
+          document.getElementById('loginUsername').value = demo.username;
+          document.getElementById('loginPassword').value = demo.password;
+          hideAlert();
+          CH.toast('已填入演示账号，点击“登录并进入工作台”。', 'info');
+        });
+      }
+
+      loginForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        hideAlert();
+        var roleOption = loginForm.querySelector('input[name="loginRole"]:checked');
+        var role = roleOption ? roleOption.value : '';
+        var username = document.getElementById('loginUsername').value;
+        var password = document.getElementById('loginPassword').value;
+        if (!username.trim() || !password) {
+          showAlert('请输入账号和密码。', 'warning');
+          return;
+        }
+        var result = CH.login(username, password, role);
+        if (!result.ok) {
+          showAlert(result.message, 'danger');
+          return;
+        }
+        showAlert('登录成功，正在进入工作台……', 'success');
+        setTimeout(function () {
+          location.href = CH.dashboardFor(result.user.role);
+        }, 260);
+      });
+
+      registerForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        hideAlert();
+        var roleOption = registerForm.querySelector('input[name="registerRole"]:checked');
+        var role = roleOption ? roleOption.value : 'student';
+        var name = document.getElementById('registerName').value;
+        var username = document.getElementById('registerUsername').value;
+        var password = document.getElementById('registerPassword').value;
+        var confirm = document.getElementById('registerConfirm').value;
+        var className = document.getElementById('registerClass').value;
+        if (!name.trim() || !username.trim() || !password) {
+          showAlert('请完整填写姓名、账号和密码。', 'warning');
+          return;
+        }
+        if (password !== confirm) {
+          showAlert('两次输入的密码不一致，请重新确认。', 'danger');
+          return;
+        }
+        var result = CH.register({ name: name, username: username, password: password, role: role, className: className });
+        if (!result.ok) {
+          showAlert(result.message, 'danger');
+          return;
+        }
+        showAlert('注册成功，正在进入' + (result.user.role === 'teacher' ? '教师' : '学生') + '工作台……', 'success');
+        setTimeout(function () {
+          location.href = CH.dashboardFor(result.user.role);
+        }, 320);
+      });
+
+      var allInputs = document.querySelectorAll('.auth-form .input');
+      for (var k = 0; k < allInputs.length; k += 1) {
+        allInputs[k].addEventListener('input', hideAlert);
+      }
+    })();
+  </script>
+</body>
+</html>

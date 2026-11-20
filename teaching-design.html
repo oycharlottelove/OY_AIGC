@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="教学设计模块占位页：呈现规划中的 AI 教学能力，当前版本聚焦作业与评价。">
+  <title>教学设计 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <section class="placeholder-hero" data-number="01">
+      <span class="eyebrow">模块占位 · 演示版</span>
+      <h1>教学设计</h1>
+      <p>面向高中化学单元教学，提供 AI 辅助的教学设计工作区。当前版本聚焦“作业与评价”，本模块先用占位卡片呈现规划中的能力。后续可接入学情数据，自动生成大单元目标、分层任务与实验安全预案。</p>
+      <div class="form-actions">
+        <a class="btn btn-primary" href="teacher-homework.html" id="homeworkCta">先体验作业与评价</a>
+        <a class="btn btn-ghost" href="teacher-dashboard.html" id="dashboardCta">返回工作台</a>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>规划中的能力</h2><p>以下卡片为演示占位，用于说明后续迭代方向，当前版本尚未接入真实功能。</p></div>
+        <span class="tag tag-amber">模块占位 · 演示版</span>
+      </div>
+      <div class="coming-grid">
+        <article class="coming-card"><div class="coming-icon">✎</div><h3>大单元教学设计生成</h3><p>根据课标、教材章节与课时数，生成单元目标、课时分配和评价任务，教师可逐条修改。</p><span class="coming-status">即将上线</span></article>
+        <article class="coming-card"><div class="coming-icon">◫</div><h3>学情前测与目标分层</h3><p>用 5—8 道前测题定位学生起点，自动给出基础、提升、拓展三层学习目标。</p><span class="coming-status">规划中</span></article>
+        <article class="coming-card"><div class="coming-icon">⚗</div><h3>化学实验安全预案</h3><p>针对钠、氯气、浓硫酸等典型实验，生成风险清单、防护措施与异常处置流程。</p><span class="coming-status">演示占位</span></article>
+        <article class="coming-card"><div class="coming-icon">▤</div><h3>板书与课件脚本</h3><p>把教学流程转成板书结构、提问链和课件分页脚本，减少重复排版时间。</p><span class="coming-status">即将上线</span></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>版本说明：</strong>本平台当前完整实现“作业与评价”模块，包括多模态批改、逐题解析、学生档案、班级共性分析与优秀答案墙。教学设计模块保留导航入口与需求卡片，便于后续按同一数据结构继续开发。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ active: 'design', title: '教学设计 · 知行化学' });
+      if (!user) return;
+      var isTeacher = user.role === 'teacher';
+      document.getElementById('homeworkCta').href = isTeacher ? 'teacher-homework.html' : 'student-homework.html';
+      document.getElementById('dashboardCta').href = isTeacher ? 'teacher-dashboard.html' : 'student-dashboard.html';
+    })();
+  </script>
+</body>
+</html>

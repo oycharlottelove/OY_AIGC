@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="课后答疑助手：上传或输入高中化学题，按步进式脚手架先想一步，再看提示与规范解析，并生成靶向变式。">
+  <title>课后答疑助手 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <section class="placeholder-hero qa-hero" data-number="04">
+      <span class="eyebrow">课后服务 · 已上线</span>
+      <h1>课后答疑助手</h1>
+      <p>不直接给答案，先陪你想一步。把题干、关键数据或题目照片交给助手，它会先拆成 3—6 个可思考的步骤：先给方向，再给原理，最后才展开规范解析。弄懂一步，再进入下一步；最后用一道靶向变式检验是否真的掌握。</p>
+      <div class="qa-hero-tags">
+        <span>步进式脚手架</span><span>多模态识题</span><span>演示可用</span><span>独立思考率</span>
+      </div>
+      <div class="form-actions">
+        <a class="btn btn-primary" href="#qa-compose">开始拆解一道题</a>
+        <a class="btn btn-secondary" href="settings.html" id="modelSettingsCta">配置模型</a>
+        <a class="btn btn-ghost" href="teacher-homework.html" id="homeworkCta">作业与评价</a>
+      </div>
+      <p class="qa-hero-note">未配置 API Key 也能完整体验：系统会自动使用内置示例题，所有按钮都可点通。步进式脚手架思路参考同学作品「循迹·化析」，界面、代码与数据结构已按本平台重写。</p>
+    </section>
+
+    <div class="qa-grid section">
+      <div class="stack">
+        <section class="card qa-compose" id="qa-compose">
+          <div class="card-header">
+            <div><h2>把题目交给助手</h2><p>支持文字、图片或两者一起；助手先拆步骤，再逐层给提示。</p></div>
+            <span class="tag tag-amber" id="qaModelBadge">演示模式</span>
+          </div>
+          <div class="card-body stack-sm">
+            <div class="field">
+              <label>题型</label>
+              <div class="mode-tabs" id="modeTabs" aria-label="选择题型"></div>
+            </div>
+            <div class="field">
+              <label for="qaText">题目文本</label>
+              <textarea class="input qa-textarea" id="qaText" maxlength="6000" placeholder="把题干、已知条件和你卡住的地方贴在这里。例如：在 2 L 密闭容器中充入 2 mol SO₂ 和 1 mol O₂……"></textarea>
+              <span class="field-hint">不需要抄完整试卷；题干、关键数据和你已经想到的一步就够。手写识别不确定处，助手会标【识别存疑：xxx】。</span>
+            </div>
+            <div class="field">
+              <label>题目图片</label>
+              <div class="qa-drop" id="qaDrop" role="button" tabindex="0" aria-label="上传题目图片">
+                <div class="qa-drop-icon">＋</div>
+                <strong>拖入图片，或点击选择</strong>
+                <span>JPG / PNG / WebP / GIF，最多 4 张；PDF 请先截图或导出为图片</span>
+                <input type="file" id="qaFile" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple hidden>
+              </div>
+              <div class="qa-thumbs" id="qaThumbs" hidden></div>
+              <span class="field-hint">图片会压缩后随题目一起发送；未配置 Key 时不会真正识图，页面会明确提示。</span>
+            </div>
+            <div class="qa-example-row">
+              <span>没有题目？载入示例：</span>
+              <button type="button" class="qa-example" data-example="lithium">锂电池回收</button>
+              <button type="button" class="qa-example" data-example="organic">有机合成</button>
+              <button type="button" class="qa-example" data-example="equilibrium">SO₂ 平衡</button>
+              <button type="button" class="qa-example" data-example="carbonate">混合物计算</button>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="button" id="qaAnalyze">开始拆解</button>
+              <button class="btn btn-ghost" type="button" id="qaReset">清空</button>
+              <span class="small muted" id="qaInline"></span>
+            </div>
+            <div class="alert alert-info qa-privacy"><span class="alert-icon">i</span><div><strong>先想一步，再看解析：</strong>助手不会把最终答案放在第一屏。每一关先给方向，再给原理，最后才展开规范解析。请先写下你的思路，再点“提交思路，请 AI 点评”。</div></div>
+          </div>
+        </section>
+
+        <div id="qaStatus" hidden></div>
+
+        <section class="card qa-welcome" id="qaWelcome">
+          <div class="card-header"><div><h2>怎么用</h2><p>把一次“看答案”变成一次真正的思考练习。</p></div></div>
+          <div class="card-body">
+            <div class="qa-steps">
+              <div class="qa-step"><b>01</b><div><strong>先描述卡点</strong><p>贴题干或上传图片，选一个题型；如果不知道题型，就选“自动识别”。</p></div></div>
+              <div class="qa-step"><b>02</b><div><strong>逐层要提示</strong><p>先自己写一句思路，再点“看方向提示”；还不够，再点“看关键原理”。</p></div></div>
+              <div class="qa-step"><b>03</b><div><strong>讲明白再变式</strong><p>点“我讲明白了”记录掌握；全部走完后生成一道靶向变式，检验能否迁移。</p></div></div>
+            </div>
+            <div class="alert alert-info" style="margin:0;"><span class="alert-icon">i</span><div><strong>演示说明：</strong>没有填写 API Key 时，助手会使用 4 道内置示例题演示完整流程，不会假装识别了你上传的图片。配置 Key 后，才会把文字与图片发送给你选择的模型。</div></div>
+          </div>
+        </section>
+
+        <section class="card qa-result" id="qaResult" hidden>
+          <div class="card-header qa-result-head">
+            <div>
+              <div class="qa-meta-line"><span class="tag" id="qaModeTag">题型</span><span class="tag tag-amber" id="qaDemoTag">演示示例</span></div>
+              <h2 id="qaTitle">题目拆解</h2>
+              <p id="qaGoal"></p>
+            </div>
+            <div class="qa-result-side">
+              <span class="qa-progress-label" id="qaProgressLabel">0 / 0 步</span>
+              <a class="btn btn-ghost btn-sm" href="#qa-compose">换一道题</a>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="qa-tags" id="qaTags"></div>
+            <div class="qa-progress">
+              <div class="qa-progress-top"><span>独立思考率</span><strong id="qaRate">0%</strong></div>
+              <div class="qa-meter" aria-hidden="true"><span id="qaMeter"></span></div>
+              <div class="qa-progress-foot">
+                <span>已掌握 <b id="qaMastered">0</b></span>
+                <span>提示 <b id="qaHintCount">0</b></span>
+                <span>思路 <b id="qaThoughtCount">0</b></span>
+              </div>
+            </div>
+            <div class="qa-nodes" id="qaNodes"></div>
+            <div class="qa-result-actions">
+              <button class="btn btn-primary" type="button" id="qaGenerateVariant">生成靶向变式</button>
+              <button class="btn btn-ghost" type="button" id="qaResetResult">重新开始</button>
+              <span class="small muted">建议先把每一步讲明白，再做变式。</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="qaVariantSection" hidden>
+          <div class="card-header"><div><h2>靶向变式</h2><p>换一个情境，检验刚才的方法能不能迁移。</p></div><span class="tag tag-green" id="qaVariantSkill">变式训练</span></div>
+          <div class="card-body" id="qaVariantBody"></div>
+        </section>
+
+        <section class="card qa-history">
+          <div class="card-header"><div><h2>我的答疑记录</h2><p>只保存在当前浏览器，最多保留 12 条；可随时载入继续想。</p></div><button class="btn btn-ghost btn-sm" type="button" id="qaClearHistory">清空记录</button></div>
+          <div class="card-body" id="qaHistoryBody"><div class="qa-empty-small">还没有答疑记录。完成一次拆解后，这里会自动保存。</div></div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <div class="card-header"><div><h2>模型状态</h2><p>演示模式与真实模型会自动切换。</p></div></div>
+          <div class="card-body">
+            <div class="qa-model-status"><span class="status-dot amber" id="qaModelDot"></span><div><strong id="qaModelName">演示模式</strong><small id="qaModelBase">未配置 API Key</small></div></div>
+            <p class="qa-model-hint" id="qaModelHint">未配置 Key 时使用内置示例题，所有功能可点通。</p>
+            <a class="btn btn-secondary btn-sm btn-block" href="settings.html">打开设置 · 配置模型</a>
+            <div class="privacy-note" style="margin-top:12px;"><strong>免费模型提醒：</strong>同学源码包里没有可直接使用的免费 Key。可在设置页一键填入 DeepSeek、Gemini、智谱或硅基流动的接口，免费额度需你自己注册获取，不要共用他人的 Key。</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><div><h2>使用步骤</h2><p>三步，不急着看答案。</p></div></div>
+          <div class="card-body">
+            <ol class="qa-steps qa-steps-compact">
+              <li><b>1</b><div><strong>写一句自己的思路</strong><span>哪怕不完整，也先写下来。</span></div></li>
+              <li><b>2</b><div><strong>按需取提示</strong><span>方向 → 原理 → 规范解析。</span></div></li>
+              <li><b>3</b><div><strong>讲明白 + 做变式</strong><span>能迁移，才算真的会。</span></div></li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><div><h2>本次学习</h2><p>只统计当前这道题。</p></div></div>
+          <div class="card-body">
+            <div class="qa-side-stats">
+              <div><strong id="qaSideMastered">0 / 0</strong><span>已掌握步骤</span></div>
+              <div><strong id="qaSideRate">0%</strong><span>独立思考率</span></div>
+              <div><strong id="qaSideThoughts">0</strong><span>写下思路</span></div>
+              <div><strong id="qaSideHints">0</strong><span>使用提示</span></div>
+            </div>
+            <p class="qa-side-note" id="qaSideNote">完成一次拆解后，这里会显示你的思考轨迹。</p>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><div><h2>最近答疑</h2><p>点一条可继续上次的进度。</p></div></div>
+          <div class="card-body" id="qaRecent"><div class="qa-empty-small">还没有记录。</div></div>
+        </section>
+      </aside>
+    </div>
+
+    <section class="section">
+      <div class="alert alert-warning"><span class="alert-icon">!</span><div><strong>使用边界：</strong>助手用于课后思考引导，不替代教师讲评，也不直接代写作业。AI 生成的解析、提示与变式可能存在错误，请以教材、教师讲解和实验事实为准；涉及真实学生姓名、学号、手写作业原图时，请先脱敏并取得授权。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ active: 'after', title: '课后答疑助手 · 知行化学' });
+      if (!user) return;
+
+      var HISTORY_KEY = 'chemhub_qa_history_v1';
+      var MAX_IMAGES = 4;
+      var MAX_HISTORY = 12;
+
+      var MODE_OPTIONS = [
+        { id: 'auto', label: '自动识别' },
+        { id: 'industrial', label: '工业流程' },
+        { id: 'organic', label: '有机推断' },
+        { id: 'experiment', label: '实验探究' },
+        { id: 'principle', label: '反应原理' },
+        { id: 'calculation', label: '计算题' },
+        { id: 'other', label: '其他综合' }
+      ];
+
+      var state = {
+        mode: 'auto',
+        images: [],
+        topic: null,
+        progress: {},
+        variant: null,
+        busy: false,
+        historyId: ''
+      };
+
+      var els = {
+        modeTabs: document.getElementById('modeTabs'),
+        text: document.getElementById('qaText'),
+        drop: document.getElementById('qaDrop'),
+        file: document.getElementById('qaFile'),
+        thumbs: document.getElementById('qaThumbs'),
+        analyze: document.getElementById('qaAnalyze'),
+        reset: document.getElementById('qaReset'),
+        inline: document.getElementById('qaInline'),
+        status: document.getElementById('qaStatus'),
+        welcome: document.getElementById('qaWelcome'),
+        result: document.getElementById('qaResult'),
+        title: document.getElementById('qaTitle'),
+        goal: document.getElementById('qaGoal'),
+        modeTag: document.getElementById('qaModeTag'),
+        demoTAG: document.getElementById('qaDemoTag'),
+        tags: document.getElementById('qaTags'),
+        nodes: document.getElementById('qaNodes'),
+        progressLabel: document.getElementById('qaProgressLabel'),
+        mastered: document.getElementById('qaMastered'),
+        hintCount: document.getElementById('qaHintCount'),
+        thoughtCount: document.getElementById('qaThoughtCount'),
+        rate: document.getElementById('qaRate'),
+        meter: document.getElementById('qaMeter'),
+        sideMastered: document.getElementById('qaSideMastered'),
+        sideRate: document.getElementById('qaSideRate'),
+        sideThoughts: document.getElementById('qaSideThoughts'),
+        sideHints: document.getElementById('qaSideHints'),
+        sideNote: document.getElementById('qaSideNote'),
+        generateVariant: document.getElementById('qaGenerateVariant'),
+        resetResult: document.getElementById('qaResetResult'),
+        variantSection: document.getElementById('qaVariantSection'),
+        variantBody: document.getElementById('qaVariantBody'),
+        variantSkill: document.getElementById('qaVariantSkill'),
+        historyBody: document.getElementById('qaHistoryBody'),
+        recent: document.getElementById('qaRecent'),
+        clearHistory: document.getElementById('qaClearHistory'),
+        modelBadge: document.getElementById('qaModelBadge'),
+        modelDot: document.getElementById('qaModelDot'),
+        modelName: document.getElementById('qaModelName'),
+        modelBase: document.getElementById('qaModelBase'),
+        modelHint: document.getElementById('qaModelHint')
+      };
+
+      var DEMO_TOPICS = {
+        lithium: {
+          id: 'li_battery',
+          mode: 'industrial',
+          title: '废旧锂电池正极材料（LiCoO₂）回收制备 Co₃O₄',
+          core_goal: '沿“碱浸—还原浸出—调 pH 除铁—沉钴煅烧”的流程，建立物料去向、氧化还原与条件控制的分析链。',
+          raw_text: '某废旧锂电池正极材料主要含 LiCoO₂，还含少量 Al、Fe。某小组设计如下回收流程：① 用 NaOH 溶液碱浸；② 向滤渣中加入 H₂SO₄ 和 H₂O₂ 酸浸；③ 调节 pH 除去 Fe³⁺；④ 加入 Na₂CO₃ 沉钴，过滤、洗涤、煅烧得到 Co₃O₄。回答：每一步的作用、H₂O₂ 的作用、调 pH 的原理，以及煅烧时 Co 的化合价变化。',
+          knowledge_tags: ['工业流程', '氧化还原', 'pH 调控', '绿色化学'],
+          nodes: [
+            {
+              id: 'li_1',
+              step_name: '① 碱浸除铝',
+              material_change: 'Al 与 NaOH 反应生成 NaAlO₂ 和 H₂；LiCoO₂ 不溶于碱，留在滤渣中。',
+              scaffold_question: '为什么第一步先用 NaOH 碱浸，而不是直接酸浸？',
+              hint_level_1: '先看 Al 的两性：它既能与酸反应，也能与强碱反应。',
+              hint_level_2: '若先酸浸，Al 也会进入溶液，后续除铝更麻烦；碱浸能把 Al 选择性溶解。',
+              key_equation: '2Al + 2NaOH + 2H₂O → 2NaAlO₂ + 3H₂↑',
+              trap_alert: '不要写成 Al + NaOH → …… 未配平，也不要漏掉水。'
+            },
+            {
+              id: 'li_2',
+              step_name: '② 还原浸出',
+              material_change: 'LiCoO₂ 中 Co 为 +3；H₂O₂ 作还原剂，把 Co(III) 还原为 Co²⁺，便于酸溶。',
+              scaffold_question: 'H₂O₂ 在这里为什么作还原剂？请从 Co 的化合价变化说明。',
+              hint_level_1: 'LiCoO₂ 中 Li 为 +1、O 为 -2，可以算出 Co 的平均化合价。',
+              hint_level_2: 'Co 从 +3 降到 +2，需要得到电子；H₂O₂ 中的 O 从 -1 升到 0，失去电子。',
+              key_equation: '2LiCoO₂ + 3H₂SO₄ + H₂O₂ → Li₂SO₄ + 2CoSO₄ + O₂↑ + 4H₂O',
+              trap_alert: 'H₂O₂ 只写“氧化剂”会丢分；这里的角色是还原剂，注意 Co 被还原。'
+            },
+            {
+              id: 'li_3',
+              step_name: '③ 调 pH 除铁',
+              material_change: 'Fe³⁺ 水解生成 Fe(OH)₃ 沉淀；pH 不能过高，否则 Co²⁺ 也会沉淀。',
+              scaffold_question: '调 pH 为什么能除铁？pH 过大有什么后果？',
+              hint_level_1: '从 Fe³⁺ 的水解平衡出发，增大 pH 会促进水解。',
+              hint_level_2: '不同金属氢氧化物的 Ksp 不同；pH 过高时 Co(OH)₂ 也可能析出。',
+              key_equation: 'Fe³⁺ + 3H₂O ⇌ Fe(OH)₃ + 3H⁺',
+              trap_alert: '不要只写 Fe³⁺ + 3OH⁻，要说明调 pH 促进水解、把 Fe³⁺ 转为沉淀。'
+            },
+            {
+              id: 'li_4',
+              step_name: '④ 沉钴与煅烧',
+              material_change: 'Co²⁺ 与 CO₃²⁻ 生成 CoCO₃ 沉淀；煅烧时 Co 由 +2 氧化为 Co₃O₄ 中的 +2 和 +3，需要氧气。',
+              scaffold_question: '沉钴后为什么还要煅烧？Co 的化合价怎样变化？',
+              hint_level_1: 'CoCO₃ 难溶，先把它从溶液中分离出来；煅烧可得到氧化物。',
+              hint_level_2: 'Co₃O₄ 可看作 CoO·Co₂O₃，其中同时有 +2 和 +3 的 Co。',
+              key_equation: 'Co²⁺ + CO₃²⁻ → CoCO₃↓；6CoCO₃ + O₂ → 2Co₃O₄ + 6CO₂',
+              trap_alert: '煅烧不是在空气中简单分解；Co 被氧化，Co₃O₄ 中 Co 有 +2 和 +3。'
+            }
+          ],
+          offline_variant: {
+            question: '关于该回收流程，下列说法正确的是（ ）',
+            options: [
+              '碱浸的目的是让 LiCoO₂ 溶解，便于后续酸浸',
+              '酸浸时加入 H₂O₂ 可将 Co(III) 还原为 Co(II)，提高浸出率',
+              '调 pH 除铁时，pH 越高除铁效果一定越好',
+              '煅烧 CoCO₃ 得到 Co₃O₄ 的过程中，钴元素化合价不变'
+            ],
+            answer: 'B',
+            analysis: 'A 错，碱浸溶解 Al，LiCoO₂ 留在滤渣；B 对；C 错，pH 过高会使 Co²⁺ 沉淀；D 错，Co 由 +2 变为 +2 和 +3。',
+            target_skill: '氧化还原与条件控制'
+          }
+        },
+        organic: {
+          id: 'organic_ester',
+          mode: 'organic',
+          title: '对羟基苯甲酸乙酯类合成路线分析',
+          core_goal: '用苯环定位效应与官能团保护顺序，判断有机合成路线是否合理。',
+          raw_text: '以甲苯为原料合成对羟基苯甲酸乙酯：① 在苯环上引入取代基；② 将甲基氧化为羧基；③ 卤代芳烃水解并酸化；④ 酚羟基与羧基选择性酯化。讨论取代位置、氧化顺序与保护策略。',
+          knowledge_tags: ['有机推断', '定位效应', '官能团保护', '合成路线'],
+          nodes: [
+            {
+              id: 'or_1',
+              step_name: '① 定位与取代',
+              material_change: '—CH₃ 是邻、对位定位基；—COOH 是间位定位基。先引入 —CH₃ 再取代，更容易得到对位产物。',
+              scaffold_question: '若先氧化甲基为羧基，再引入第二个取代基，主要进入什么位置？',
+              hint_level_1: '先判断 —CH₃ 和 —COOH 分别属于哪类定位基。',
+              hint_level_2: '—COOH 是间位定位基，所以第二个取代基主要进入其间位，而不是对位。',
+              key_equation: 'C₆H₅CH₃ + Cl₂ →（FeCl₃）邻/对氯甲苯',
+              trap_alert: '不要把 —COOH 也当成邻对位定位基；定位效应看的是原有取代基。'
+            },
+            {
+              id: 'or_2',
+              step_name: '② 氧化顺序',
+              material_change: '—CH₃ 可被 KMnO₄(H⁺) 氧化为 —COOH；酚羟基容易被氧化，通常先氧化甲基，再引入或保护酚羟基。',
+              scaffold_question: '为什么通常先氧化甲基，而不是先引入酚羟基？',
+              hint_level_1: '酚羟基具有还原性，容易被强氧化剂氧化。',
+              hint_level_2: '若先引入酚羟基，再用 KMnO₄ 氧化甲基，酚羟基可能被破坏。',
+              key_equation: 'C₆H₅CH₃ + 3[O] → C₆H₅COOH + H₂O（示意）',
+              trap_alert: '忽略酚羟基被氧化，会导致合成顺序判断错误。'
+            },
+            {
+              id: 'or_3',
+              step_name: '③ 卤代芳烃水解',
+              material_change: '卤代芳烃在 NaOH 水溶液中水解，酸化后得到酚；若先水解再氧化，需考虑酚羟基的保护。',
+              scaffold_question: '卤代芳烃水解后为什么要酸化？',
+              hint_level_1: '碱性水解得到的是酚钠，不是酚。',
+              hint_level_2: '酚钠加酸后才转化为酚；不酸化，产物状态会写错。',
+              key_equation: 'Ar—Cl + 2NaOH → Ar—ONa + NaCl + H₂O；Ar—ONa + HCl → Ar—OH + NaCl',
+              trap_alert: '只写水解不写酸化，把产物写成酚钠，是常见失分点。'
+            },
+            {
+              id: 'or_4',
+              step_name: '④ 选择性酯化',
+              material_change: '酚羟基与羧基都可酯化，但酚羟基酯化较难；用乙醇和浓硫酸时主要酯化羧基，需控制条件。',
+              scaffold_question: '如何让乙醇主要与羧基酯化，而不与酚羟基反应？',
+              hint_level_1: '羧酸与醇的酯化在酸催化、加热条件下较容易进行。',
+              hint_level_2: '酚羟基的酯化通常需要更活泼的酰化试剂；控制条件可实现选择性。',
+              key_equation: 'C₆H₄(OH)COOH + C₂H₅OH ⇌ C₆H₄(OH)COOC₂H₅ + H₂O',
+              trap_alert: '不写可逆号与浓硫酸条件；也不要把两个羟基都酯化。'
+            }
+          ],
+          offline_variant: {
+            question: '关于该合成路线，下列说法正确的是（ ）',
+            options: [
+              '先引入酚羟基再氧化甲基，可以避免酚羟基被氧化',
+              '—COOH 是邻对位定位基，因此第二个取代基主要进入其对位',
+              '先氧化甲基再引入酚羟基，有利于避免酚羟基在强氧化条件下被破坏',
+              '酚羟基与羧基的酯化能力相同，不需要控制反应条件'
+            ],
+            answer: 'C',
+            analysis: 'A 错，酚羟基容易被氧化；B 错，—COOH 是间位定位基；C 对；D 错，二者酯化难易不同，需要控制条件。',
+            target_skill: '定位效应与合成顺序'
+          }
+        },
+        equilibrium: {
+          id: 'so2_equilibrium',
+          mode: 'principle',
+          title: '密闭容器中 SO₂ 催化氧化平衡分析',
+          core_goal: '用三段式、平衡常数与条件变化，判断转化率和平衡移动。',
+          raw_text: '在 2 L 密闭容器中充入 2 mol SO₂ 和 1 mol O₂，一定温度下发生反应 2SO₂(g) + O₂(g) ⇌ 2SO₃(g)，平衡时 SO₃ 为 1.2 mol。求 SO₂、O₂ 的转化率和该温度下的平衡常数；并判断升温、压缩体积、加催化剂对平衡的影响。',
+          knowledge_tags: ['化学平衡', '三段式', '平衡常数', '条件变化'],
+          nodes: [
+            {
+              id: 'eq_1',
+              step_name: '① 建立三段式',
+              material_change: '起始：SO₂ 2 mol、O₂ 1 mol、SO₃ 0；平衡 SO₃ 1.2 mol，则 SO₂ 0.8 mol、O₂ 0.4 mol。',
+              scaffold_question: '平衡时 SO₃ 为 1.2 mol，如何用“起始—变化—平衡”三段式表示三种物质的量？',
+              hint_level_1: '设 SO₂ 转化了 2x mol，则 O₂ 转化 x mol，SO₃ 生成 2x mol。',
+              hint_level_2: '2x = 1.2，所以 x = 0.6；再代回起始量，得到平衡量。',
+              key_equation: '2SO₂ + O₂ ⇌ 2SO₃',
+              trap_alert: '不要把物质的量直接当浓度；容器体积是 2 L，算 K 前要除以体积。'
+            },
+            {
+              id: 'eq_2',
+              step_name: '② 算转化率与 K',
+              material_change: 'c(SO₂)=0.4、c(O₂)=0.2、c(SO₃)=0.6 mol/L；α(SO₂)=60%，α(O₂)=60%；K=0.6²/(0.4²×0.2)=11.25。',
+              scaffold_question: '转化率和平衡常数分别怎么算？为什么 K 的表达式不带固体或纯液体？',
+              hint_level_1: '转化率 = 变化量 ÷ 起始量；K 用平衡浓度，不用起始浓度。',
+              hint_level_2: 'K = c²(SO₃) / [c²(SO₂)·c(O₂)]，代入 0.6、0.4、0.2。',
+              key_equation: 'K = c²(SO₃) / [c²(SO₂)·c(O₂)]',
+              trap_alert: 'O₂ 的指数是 1，不要写成 2；SO₂ 和 SO₃ 的指数才是 2。'
+            },
+            {
+              id: 'eq_3',
+              step_name: '③ 条件变化',
+              material_change: '升温：正、逆速率都增大，平衡逆向移动，SO₂ 转化率减小，K 减小；压缩体积：正、逆速率都增大，平衡正向移动，转化率增大，K 不变；加催化剂：速率增大，平衡不移动。',
+              scaffold_question: '升温、压缩体积、加催化剂分别怎样影响速率、平衡移动和 K？',
+              hint_level_1: '先看反应热：SO₂ 催化氧化是放热反应，ΔH < 0。',
+              hint_level_2: '催化剂只改变速率，不改变平衡状态；K 只随温度变化。',
+              key_equation: '2SO₂ + O₂ ⇌ 2SO₃  ΔH < 0',
+              trap_alert: '不要把“加压”与“加催化剂”混为一谈；也不要认为 K 随压强变化。'
+            }
+          ],
+          offline_variant: {
+            question: '对于反应 2SO₂(g) + O₂(g) ⇌ 2SO₃(g) ΔH < 0，下列叙述正确的是（ ）',
+            options: [
+              '升高温度，正、逆反应速率均增大，SO₂ 的平衡转化率增大',
+              '压缩容器体积，正、逆反应速率均增大，SO₂ 的平衡转化率增大',
+              '加入催化剂，SO₂ 的平衡转化率增大',
+              '平衡时，c(SO₃) = c(SO₂)'
+            ],
+            answer: 'B',
+            analysis: 'A 错，升温平衡逆向移动，转化率减小；B 对，压缩体积平衡正向移动；C 错，催化剂不移动平衡；D 错，二者浓度不一定相等。',
+            target_skill: '平衡移动与 K 的理解'
+          }
+        },
+        carbonate: {
+          id: 'carbonate_mix',
+          mode: 'experiment',
+          title: '加热法测定 NaHCO₃ 与 Na₂CO₃ 混合物组成',
+          core_goal: '用质量差法、守恒关系和气体体积，完成混合物组成计算与误差分析。',
+          raw_text: '取 5.00 g NaHCO₃ 与 Na₂CO₃ 的混合物，加热至质量不再变化，固体质量变为 3.45 g。向剩余固体中加入足量稀盐酸，收集到 CO₂（标准状况）。求 NaHCO₃ 的质量分数和 CO₂ 体积。',
+          knowledge_tags: ['实验计算', '质量差法', '守恒', '误差分析'],
+          nodes: [
+            {
+              id: 'ca_1',
+              step_name: '① 质量差来源',
+              material_change: '2NaHCO₃ → Na₂CO₃ + H₂O↑ + CO₂↑；每 2 mol NaHCO₃（168 g）加热后固体减少 62 g。',
+              scaffold_question: '加热后固体质量为什么减少？减少的是什么？',
+              hint_level_1: 'NaHCO₃ 受热分解，生成物中有气体和水蒸气。',
+              hint_level_2: 'H₂O 和 CO₂ 都逸出，所以质量差是二者之和，不是只有 CO₂。',
+              key_equation: '2NaHCO₃ → Na₂CO₃ + H₂O↑ + CO₂↑',
+              trap_alert: '只减 CO₂、漏掉水蒸气，是这类题最常见的错误。'
+            },
+            {
+              id: 'ca_2',
+              step_name: '② 求 NaHCO₃ 质量分数',
+              material_change: '质量损失 1.55 g；n(NaHCO₃)=1.55/62×2=0.05 mol；m=4.2 g；质量分数=84%。',
+              scaffold_question: '如何由 1.55 g 质量差求 NaHCO₃ 的质量？',
+              hint_level_1: '先找质量差与 NaHCO₃ 物质的量的比例关系。',
+              hint_level_2: '2 mol NaHCO₃ 对应 62 g 质量差，所以 1.55 g 对应 0.05 mol。',
+              key_equation: 'm(NaHCO₃) = 1.55 ÷ 62 × 2 × 84 g',
+              trap_alert: '不要把 62 g 当成 1 mol NaHCO₃ 的质量差；比例是 2 mol 对 62 g。'
+            },
+            {
+              id: 'ca_3',
+              step_name: '③ 加酸产气与误差',
+              material_change: '剩余固体 3.45 g 全为 Na₂CO₃，n=3.45/106=0.03255 mol；CO₂ 体积=0.03255×22.4=0.729 L。若加热不充分，质量差偏小，NaHCO₃ 质量分数偏低。',
+              scaffold_question: '剩余固体与盐酸反应产生多少 CO₂？加热不充分会使结果偏高还是偏低？',
+              hint_level_1: 'Na₂CO₃ 与盐酸反应，1 mol Na₂CO₃ 生成 1 mol CO₂。',
+              hint_level_2: '标准状况下气体摩尔体积为 22.4 L/mol；质量差偏小，算出的 NaHCO₃ 偏少。',
+              key_equation: 'Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂↑',
+              trap_alert: '忘记标准状况的 22.4 L/mol，或把剩余固体质量当成 NaHCO₃ 的质量。'
+            }
+          ],
+          offline_variant: {
+            question: '若加热不充分，按上述质量差法测得的 NaHCO₃ 质量分数会（ ）',
+            options: ['偏高', '偏低', '不变', '无法判断'],
+            answer: 'B',
+            analysis: '加热不充分，质量损失偏小，由质量差算出的 NaHCO₃ 偏少，因此质量分数偏低。',
+            target_skill: '质量差法与误差分析'
+          }
+        }
+      };
+
+      function asText(value) {
+        if (value === null || value === undefined) return '';
+        if (typeof value === 'string') return value.trim();
+        if (typeof value === 'number') return String(value);
+        if (Array.isArray(value)) {
+          return value.map(function (item) { return asText(item); }).filter(Boolean).join('；');
+        }
+        if (typeof value === 'object') {
+          return String(value.text || value.comment || value.description || value.value || '').trim();
+        }
+        return '';
+      }
+
+      function textBlock(value) {
+        return CH.escapeHTML(asText(value)).replace(/\n/g, '<br>');
+      }
+
+      function clone(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function delay(ms) {
+        return new Promise(function (resolve) { setTimeout(resolve, ms); });
+      }
+
+      function modeLabel(mode) {
+        var found = MODE_OPTIONS.filter(function (item) { return item.id === mode; })[0];
+        return found ? found.label : '其他综合';
+      }
+
+      function normalizeMode(value, fallback) {
+        var raw = String(value || '').toLowerCase();
+        if (/industrial|工业|流程/.test(raw)) return 'industrial';
+        if (/organic|有机|推断/.test(raw)) return 'organic';
+        if (/experiment|实验|探究/.test(raw)) return 'experiment';
+        if (/principle|原理|平衡/.test(raw)) return 'principle';
+        if (/calculation|计算|溶液|定量/.test(raw)) return 'calculation';
+        if (/other|综合|其他/.test(raw)) return 'other';
+        return fallback || 'other';
+      }
+
+      function renderModeTabs() {
+        els.modeTabs.innerHTML = MODE_OPTIONS.map(function (item) {
+          return '<button type="button" class="mode-pill' + (state.mode === item.id ? ' is-active' : '') + '" data-mode="' + item.id + '" aria-pressed="' + (state.mode === item.id ? 'true' : 'false') + '">' + item.label + '</button>';
+        }).join('');
+      }
+
+      function setMode(mode) {
+        state.mode = mode || 'auto';
+        renderModeTabs();
+      }
+
+      function renderModel() {
+        var settings = CH.getSettings();
+        var real = Boolean(settings.apiKey) && !settings.forceDemo;
+        els.modelBadge.textContent = real ? ('真实模型 · ' + settings.model) : '演示模式';
+        els.modelBadge.className = real ? 'tag tag-green' : 'tag tag-amber';
+        els.modelDot.className = real ? 'status-dot' : 'status-dot amber';
+        els.modelName.textContent = real ? settings.model : '演示模式';
+        els.modelBase.textContent = real ? CH.truncate(settings.apiBase, 48) : '未配置 API Key 或已开启强制演示';
+        els.modelHint.textContent = real
+          ? '本次拆解会把题目文字与图片发送给你配置的模型；解析仍需教师复核。'
+          : '未配置 Key 时使用内置示例题，所有功能可点通；上传的图片不会被真正识别。';
+        var settingsLinks = document.querySelectorAll('a[href="settings.html"]');
+        for (var i = 0; i < settingsLinks.length; i += 1) {
+          settingsLinks[i].setAttribute('title', real ? '修改模型、Key 或接口地址' : '配置 API Key 或免费模型');
+        }
+      }
+
+      function showStatus(type, message) {
+        var icons = { info: 'i', success: '✓', warning: '!', danger: '!' };
+        els.status.hidden = false;
+        els.status.className = 'alert alert-' + type;
+        els.status.innerHTML = '<span class="alert-icon">' + (icons[type] || 'i') + '</span><div>' + message + '</div>';
+      }
+
+      function hideStatus() {
+        els.status.hidden = true;
+        els.status.className = '';
+        els.status.innerHTML = '';
+      }
+
+      function setBusy(busy) {
+        state.busy = busy;
+        els.analyze.disabled = busy;
+        els.analyze.textContent = busy ? '正在拆解…' : '开始拆解';
+      }
+
+      function renderThumbs() {
+        els.thumbs.hidden = state.images.length === 0;
+        els.thumbs.innerHTML = state.images.map(function (image, index) {
+          return '<div class="qa-thumb">' +
+            '<img src="' + image.dataUrl + '" alt="题目图片 ' + (index + 1) + '">' +
+            '<button type="button" data-remove="' + index + '" aria-label="移除这张图片">×</button>' +
+            '<span>' + CH.escapeHTML(CH.truncate(image.name || ('图片 ' + (index + 1)), 18)) + '</span>' +
+            '</div>';
+        }).join('');
+      }
+
+      function addFiles(fileList) {
+        var files = Array.prototype.slice.call(fileList || []);
+        if (!files.length) return;
+        if (state.images.length >= MAX_IMAGES) {
+          CH.toast('最多上传 ' + MAX_IMAGES + ' 张图片，请先移除一张。', 'warning');
+          return;
+        }
+        files.slice(0, MAX_IMAGES - state.images.length).forEach(function (file) {
+          if (/^application\/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) {
+            CH.toast('PDF 暂不直接识别，请先截图或导出为 JPG / PNG 图片。', 'warning');
+            return;
+          }
+          if (!/^image\//i.test(file.type)) {
+            CH.toast('请选择 JPG、PNG、WebP 或 GIF 图片。', 'warning');
+            return;
+          }
+          if (file.size > 10 * 1024 * 1024) {
+            CH.toast('单张图片请控制在 10 MB 以内。', 'warning');
+            return;
+          }
+          CH.compressImage(file, 1600, 0.86).then(function (meta) {
+            state.images.push({ dataUrl: meta.dataUrl, name: file.name, width: meta.width, height: meta.height });
+            renderThumbs();
+            els.inline.textContent = '已添加 ' + state.images.length + ' 张图片，点击“开始拆解”即可。';
+          }).catch(function (error) {
+            CH.toast(error.message || '图片处理失败，请换一张试试。', 'error');
+          });
+        });
+      }
+
+      function pickDemo(text, mode) {
+        var value = String(text || '');
+        if (/LiCoO|锂电池|正极|钴酸锂/.test(value)) return DEMO_TOPICS.lithium;
+        if (/酯|苯环|甲苯|有机|官能团|对羟基/.test(value)) return DEMO_TOPICS.organic;
+        if (/SO₂|SO2|平衡|转化率|平衡常数|11\.25/.test(value)) return DEMO_TOPICS.equilibrium;
+        if (/NaHCO|碳酸氢钠|质量分数|质量差|混合物/.test(value)) return DEMO_TOPICS.carbonate;
+        if (mode === 'industrial') return DEMO_TOPICS.lithium;
+        if (mode === 'organic') return DEMO_TOPICS.organic;
+        if (mode === 'principle') return DEMO_TOPICS.equilibrium;
+        if (mode === 'experiment' || mode === 'calculation') return DEMO_TOPICS.carbonate;
+        return DEMO_TOPICS.lithium;
+      }
+
+      function normalizeTopic(raw, fallbackMode) {
+        var data = raw && typeof raw === 'object' ? raw : {};
+        var nodes = Array.isArray(data.nodes) ? data.nodes : [];
+        if (!nodes.length) {
+          var noNodes = new Error('模型没有返回可用的拆解步骤。');
+          noNodes.code = 'BAD_TOPIC';
+          throw noNodes;
+        }
+        var title = asText(data.title || data.question_title || '化学题拆解');
+        var coreGoal = asText(data.core_goal || data.goal || data.summary || '先拆步骤，再逐层理解。');
+        var mode = normalizeMode(data.mode, fallbackMode);
+        var tags = Array.isArray(data.knowledge_tags) ? data.knowledge_tags : (Array.isArray(data.tags) ? data.tags : []);
+        tags = tags.map(asText).filter(Boolean).slice(0, 8);
+        var normalized = {
+          id: asText(data.id) || ('qa_topic_' + Date.now().toString(36)),
+          mode: mode,
+          title: title,
+          core_goal: coreGoal,
+          knowledge_tags: tags,
+          nodes: nodes.slice(0, 6).map(function (node, index) {
+            var item = node && typeof node === 'object' ? node : { step_name: asText(node) };
+            var hints = item.hints && typeof item.hints === 'object' ? item.hints : {};
+            return {
+              id: asText(item.id) || ('step_' + (index + 1)),
+              step_name: asText(item.step_name || item.name || ('第 ' + (index + 1) + ' 步')),
+              material_change: asText(item.material_change || item.change || item.material || '本步的关键变化会在第 3 层揭晓。'),
+              scaffold_question: asText(item.scaffold_question || item.question || item.guiding_question || '先说说你打算从哪一步开始？'),
+              hint_level_1: asText(item.hint_level_1 || item.hint1 || hints.level_1 || '先回到题干，找出与本步有关的已知条件。'),
+              hint_level_2: asText(item.hint_level_2 || item.hint2 || hints.level_2 || '试着把“现象—反应—守恒”连成一句话。'),
+              key_equation: asText(item.key_equation || item.equation || item.key || '本步暂无固定方程式，请用文字说明依据。'),
+              trap_alert: asText(item.trap_alert || item.trap || item.warning || '注意反应条件、配平与守恒关系。')
+            };
+          }),
+          offline_variant: data.offline_variant || null
+        };
+        return normalized;
+      }
+
+      function normalizeVariant(raw, topic) {
+        var data = raw && typeof raw === 'object' ? raw : {};
+        var options = Array.isArray(data.options) ? data.options.map(asText).filter(Boolean) : [];
+        if (!data.question || options.length < 2) {
+          var bad = new Error('模型没有返回可用的变式题。');
+          bad.code = 'BAD_VARIANT';
+          throw bad;
+        }
+        return {
+          question: asText(data.question),
+          options: options.slice(0, 6),
+          answer: asText(data.answer || data.correct || ''),
+          analysis: asText(data.analysis || data.explanation || '请回到题目条件，逐步核对。'),
+          target_skill: asText(data.target_skill || data.skill || (topic ? topic.core_goal : '迁移应用'))
+        };
+      }
+
+      function parseJsonText(text) {
+        var value = String(text || '').trim();
+        var fence = String.fromCharCode(96, 96, 96);
+        if (value.indexOf(fence) === 0) {
+          value = value.slice(fence.length).replace(/^json/i, '').trim();
+        }
+        if (value.slice(-fence.length) === fence) value = value.slice(0, -fence.length).trim();
+        var first = value.indexOf('{');
+        var last = value.lastIndexOf('}');
+        if (first >= 0 && last > first) value = value.slice(first, last + 1);
+        try {
+          return JSON.parse(value);
+        } catch (error) {
+          var parseError = new Error('模型返回的内容不是有效 JSON。');
+          parseError.code = 'PARSE_ERROR';
+          throw parseError;
+        }
+      }
+
+      function shouldRetry(error, attempt) {
+        if (attempt > 0) return false;
+        var code = error && error.code;
+        if (code === 'EMPTY_RESPONSE' || code === 'PARSE_ERROR' || code === 'BAD_TOPIC' || code === 'BAD_VARIANT' || code === 'BAD_FEEDBACK') return true;
+        return code === 'API_ERROR' && error.status === 400;
+      }
+
+      async function callJson(systemPrompt, userContent, options, validator) {
+        var lastError = null;
+        for (var attempt = 0; attempt < 2; attempt += 1) {
+          var content = userContent;
+          if (attempt === 1) {
+            var retryHint = '上一次输出无法解析为 JSON。请只输出一个以 { 开头、以 } 结尾的 JSON 对象，不要使用代码块，不要输出解释文字。';
+            content = Array.isArray(content)
+              ? content.concat([{ type: 'text', text: retryHint }])
+              : String(content || '') + '\n\n' + retryHint;
+          }
+          try {
+            var response = await CH.callDeepSeek([
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: content }
+            ], {
+              jsonMode: attempt === 0,
+              maxTokens: options.maxTokens || 8192,
+              timeout: options.timeout || 120000,
+              temperature: typeof options.temperature === 'number' ? options.temperature : 0.25
+            });
+            var data = parseJsonText(response.content);
+            return validator ? validator(data) : data;
+          } catch (error) {
+            lastError = error;
+            if (!shouldRetry(error, attempt)) throw error;
+          }
+        }
+        throw lastError;
+      }
+
+      var TOPIC_SYSTEM = [
+        '你是一位高中化学教师，正在做“课后答疑助手”。你的任务不是直接给答案，而是把题目拆成 3—6 个可思考的步骤，用苏格拉底式追问引导学生。',
+        '学科硬约束：',
+        '1. 化学式、离子符号、电荷、原子守恒必须准确；方程式必须配平，箭头区分“→”和“⇌”，必要时注明条件（△、催化剂、点燃等）。',
+        '2. 化学式正确但配平错误时，要在 trap_alert 中明确写“配平错误”，不要笼统说“错误”。',
+        '3. 计算题按步骤给分，提示中先引导列式与单位，不直接抛出最终数字。',
+        '4. 涉及实验现象时，区分“观察到什么”和“说明什么”；涉及沉淀、气体要注明条件。',
+        '5. 手写或图片识别不确定处，用【识别存疑：xxx】标出，不要假装确定。',
+        '6. 使用 Unicode 化学式（如 SO₂、Fe³⁺、CO₃²⁻），不要使用 Markdown、LaTeX 或代码块。',
+        '输出要求：只输出一个 JSON 对象，不要输出任何解释文字。',
+        'JSON 结构：',
+        '{"title":"题目简短标题","mode":"industrial|organic|experiment|principle|calculation|other","core_goal":"本题要训练的核心能力，40字以内","knowledge_tags":["标签1","标签2"],"nodes":[{"id":"n1","step_name":"① 步骤名","material_change":"第3层才揭晓的关键变化/结论","scaffold_question":"不剧透答案的追问","hint_level_1":"方向提示，不给答案","hint_level_2":"关键原理提示，仍不给最终结果","key_equation":"本步关键方程式或关系式","trap_alert":"本步最常见的错误与规范提醒"}],"offline_variant":{"question":"一道单选变式","options":["选项A","选项B","选项C","选项D"],"answer":"B","analysis":"解析","target_skill":"考查的方法"}}',
+        '要求：nodes 3—6 个；scaffold_question 和 hint_level_1 都不能直接透露最终答案；material_change 可以详细，但它只会在第 3 层展示；offline_variant 必须是可判分的单选题，answer 用 A/B/C/D。'
+      ].join('\n');
+
+      var FEEDBACK_SYSTEM = [
+        '你是一位高中化学教师，正在点评学生的“一步思路”，不是批改整份作业。',
+        '要求：先肯定学生写对的部分；再指出还缺什么；最后用一个问题把思考往前推。不要直接给出最终答案或完整解题过程。',
+        '化学式、电荷、守恒、反应条件必须准确；不确定时写【识别存疑：xxx】。',
+        '语言控制在 120 字以内，温和、具体、可执行。',
+        '只输出 JSON：{"level":"思路清晰|方向基本正确|需要再想一步|暂未形成思路","comment":"点评","next_question":"追问","missing":"还缺的关键点"}'
+      ].join('\n');
+
+      var VARIANT_SYSTEM = [
+        '你是一位高中化学命题教师，请根据学生刚完成的题目与薄弱步骤，生成 1 道同考点、不同情境的单选题。',
+        '要求：四个选项，只有一个正确；干扰项要对应常见错误；解析要说明每个选项为什么对/错；不得超纲。',
+        '化学式、配平、电荷与守恒必须准确；使用 Unicode 化学式，不要 Markdown/LaTeX。',
+        '只输出 JSON：{"question":"题干","options":["A选项","B选项","C选项","D选项"],"answer":"B","analysis":"解析","target_skill":"考查的方法"}'
+      ].join('\n');
+
+      async function requestTopic(text, mode, images) {
+        var parts = ['题型：' + modeLabel(mode)];
+        if (text) parts.push('题目文本：\n' + text);
+        if (images.length) parts.push('已附上 ' + images.length + ' 张题目图片，请先识题，再拆解。');
+        var userContent = parts.join('\n\n');
+        if (images.length) {
+          userContent = [{ type: 'text', text: userContent }].concat(images.map(function (image) {
+            return { type: 'image_url', image_url: { url: image.dataUrl, detail: 'high' } };
+          }));
+        }
+        return callJson(TOPIC_SYSTEM, userContent, { maxTokens: 8192, timeout: 120000 }, function (data) {
+          return normalizeTopic(data, mode);
+        });
+      }
+
+      function normalizeFeedback(raw) {
+        var data = raw;
+        if (typeof data === 'string') {
+          data = { comment: data };
+        }
+        data = data && typeof data === 'object' ? data : {};
+        var comment = asText(data.comment || data.feedback || data.评价 || data.点评);
+        if (!comment) {
+          var bad = new Error('模型没有返回有效点评。');
+          bad.code = 'BAD_FEEDBACK';
+          throw bad;
+        }
+        return {
+          level: asText(data.level || data.verdict || '方向基本正确'),
+          comment: CH.truncate(comment, 240),
+          next_question: asText(data.next_question || data.nextQuestion || data.追问 || '请用一句话说明这一步为什么必须这样做。'),
+          missing: asText(data.missing || data.缺少 || ''),
+          demo: false
+        };
+      }
+
+      async function requestFeedback(node, thought) {
+        var user = '题目：' + state.topic.title + '\n本步：' + node.step_name + '\n引导问题：' + node.scaffold_question + '\n学生思路：' + thought;
+        try {
+          return await callJson(FEEDBACK_SYSTEM, user, { maxTokens: 900, timeout: 60000, temperature: 0.45 }, normalizeFeedback);
+        } catch (error) {
+          if (error && error.code === 'NO_KEY') throw error;
+          if (error && error.code === 'API_ERROR' && error.status !== 400 && error.status !== 404) throw error;
+          var response = await CH.callDeepSeek([
+            { role: 'system', content: FEEDBACK_SYSTEM.replace('只输出 JSON：', '请用纯文本回答，不要输出 JSON。格式：先肯定，再指出缺口，最后追问。') },
+            { role: 'user', content: user }
+          ], { jsonMode: false, maxTokens: 700, timeout: 60000, temperature: 0.45 });
+          return normalizeFeedback({ comment: response.content });
+        }
+      }
+
+      function mockFeedback(node, thought) {
+        var compact = String(thought || '').replace(/\s/g, '');
+        var hasFormula = /[A-Z][a-z]?\d*|→|⇌|mol|守恒|电子|pH|Ksp/.test(thought);
+        var level;
+        var comment;
+        if (compact.length < 14) {
+          level = '需要再想一步';
+          comment = '你已经愿意写下第一步，这很好。不过目前更像一个结论，还没有说明“为什么”。先试着回答：' + node.scaffold_question;
+        } else if (compact.length < 45 || !hasFormula) {
+          level = '方向基本正确';
+          comment = '你抓住了“' + node.step_name + '”的大致方向，但推理链还可以更完整。试着按“看到什么—发生什么—守恒关系是什么”写成三句话，再把反应条件补上。';
+        } else {
+          level = '思路清晰';
+          comment = '你的表述已经覆盖了“' + node.step_name + '”的关键环节，因果也比较清楚。再检查一次反应条件与守恒关系，然后打开规范解析对照，看看有没有漏掉的规范表述。';
+        }
+        return {
+          level: level,
+          comment: comment,
+          next_question: '请用一句话补上：这一步为什么必须这样做？',
+          missing: hasFormula ? '反应条件与守恒关系' : '关键依据与因果链',
+          demo: true
+        };
+      }
+
+      async function requestVariant(topic, weakNodes) {
+        var user = '题目：' + topic.title + '\n核心目标：' + topic.core_goal + '\n学生还没掌握的步骤：' + (weakNodes.length ? weakNodes.join('；') : '暂无，请围绕核心方法命题') + '\n请生成一道同考点的单选题。';
+        return callJson(VARIANT_SYSTEM, user, { maxTokens: 1600, timeout: 90000, temperature: 0.5 }, function (data) {
+          return normalizeVariant(data, topic);
+        });
+      }
+
+      function getProgress(nodeId) {
+        var key = String(nodeId);
+        if (!state.progress[key]) {
+          state.progress[key] = {
+            hint1: false,
+            hint2: false,
+            revealed: false,
+            mastered: false,
+            stuck: false,
+            thought: '',
+            feedback: null
+          };
+        }
+        return state.progress[key];
+      }
+
+      function getStats() {
+        var nodes = state.topic ? state.topic.nodes : [];
+        var mastered = 0;
+        var hints = 0;
+        var thoughts = 0;
+        var independent = 0;
+        nodes.forEach(function (node) {
+          var progress = getProgress(node.id);
+          if (progress.mastered) mastered += 1;
+          if (progress.hint1) hints += 1;
+          if (progress.hint2) hints += 1;
+          if (progress.thought) thoughts += 1;
+          if (progress.thought && !progress.revealed) independent += 1;
+        });
+        return {
+          total: nodes.length,
+          mastered: mastered,
+          hints: hints,
+          thoughts: thoughts,
+          rate: nodes.length ? Math.round(independent / nodes.length * 100) : 0
+        };
+      }
+
+      function updateStats() {
+        var stats = getStats();
+        els.mastered.textContent = String(stats.mastered);
+        els.hintCount.textContent = String(stats.hints);
+        els.thoughtCount.textContent = String(stats.thoughts);
+        els.rate.textContent = stats.rate + '%';
+        els.meter.style.width = stats.rate + '%';
+        els.progressLabel.textContent = stats.mastered + ' / ' + stats.total + ' 步';
+        els.sideMastered.textContent = stats.mastered + ' / ' + stats.total;
+        els.sideRate.textContent = stats.rate + '%';
+        els.sideThoughts.textContent = String(stats.thoughts);
+        els.sideHints.textContent = String(stats.hints);
+        if (!state.topic) {
+          els.sideNote.textContent = '完成一次拆解后，这里会显示你的思考轨迹。';
+        } else if (!stats.thoughts) {
+          els.sideNote.textContent = '先写一句自己的思路，独立思考率才会开始累计。';
+        } else if (stats.rate >= 70) {
+          els.sideNote.textContent = '你主要在靠自己的思路推进，继续保持；规范解析只用来对照表达。';
+        } else {
+          els.sideNote.textContent = '提示用得比较多也没关系，试着在下一题先写一句自己的判断。';
+        }
+      }
+
+      function renderTags() {
+        var tags = state.topic && state.topic.knowledge_tags ? state.topic.knowledge_tags : [];
+        els.tags.innerHTML = tags.length
+          ? tags.map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join('')
+          : '<span class="tag tag-gray">暂无知识点标签</span>';
+      }
+
+      function renderNodes() {
+        if (!state.topic) {
+          els.nodes.innerHTML = '';
+          return;
+        }
+        els.nodes.innerHTML = state.topic.nodes.map(function (node, index) {
+          var progress = getProgress(node.id);
+          var statusText = progress.mastered ? '已掌握' : (progress.revealed ? '解析已打开' : (progress.stuck ? '卡在这里' : '未开始'));
+          var statusClass = progress.mastered ? ' is-mastered' : (progress.stuck ? ' is-stuck' : '');
+          var hints = '';
+          if (progress.hint1) {
+            hints += '<div class="qa-hint"><b>方向提示</b>' + textBlock(node.hint_level_1) + '</div>';
+          }
+          if (progress.hint2) {
+            hints += '<div class="qa-hint qa-hint-strong"><b>关键原理</b>' + textBlock(node.hint_level_2) + '</div>';
+          }
+          var hintButtons = '';
+          if (!progress.hint1) {
+            hintButtons += '<button type="button" class="btn btn-secondary btn-sm" data-act="hint1">看方向提示</button>';
+          }
+          if (progress.hint1 && !progress.hint2) {
+            hintButtons += '<button type="button" class="btn btn-secondary btn-sm" data-act="hint2">看关键原理</button>';
+          }
+          var revealed = '';
+          if (progress.revealed) {
+            revealed = '<div class="qa-reveal">' +
+              '<div class="qa-reveal-row"><span class="qa-label">本步关键变化</span><p>' + textBlock(node.material_change) + '</p></div>' +
+              '<div class="qa-reveal-row"><span class="qa-label">关键方程式 / 关系式</span><p class="qa-equation">' + textBlock(node.key_equation) + '</p></div>' +
+              '<div class="qa-reveal-row qa-trap"><span class="qa-label">易错提醒</span><p>' + textBlock(node.trap_alert) + '</p></div>' +
+              '</div>';
+          }
+          var feedback = '';
+          if (progress.feedback) {
+            feedback = '<div class="qa-feedback">' +
+              '<div class="qa-feedback-head"><span class="tag tag-green">' + CH.escapeHTML(progress.feedback.level || '方向基本正确') + '</span>' + (progress.feedback.demo ? '<span class="tag tag-amber">本地演示点评</span>' : '<span class="tag">AI 点评</span>') + '</div>' +
+              '<p>' + textBlock(progress.feedback.comment) + '</p>' +
+              (progress.feedback.missing ? '<p class="qa-feedback-missing"><strong>还缺：</strong>' + textBlock(progress.feedback.missing) + '</p>' : '') +
+              (progress.feedback.next_question ? '<p class="qa-feedback-next"><strong>再想一步：</strong>' + textBlock(progress.feedback.next_question) + '</p>' : '') +
+              '</div>';
+          }
+          return '<article class="qa-node' + statusClass + '" data-index="' + index + '">' +
+            '<div class="qa-node-head">' +
+              '<span class="qa-node-index">' + String(index + 1).padStart(2, '0') + '</span>' +
+              '<div class="qa-node-title"><h3>' + CH.escapeHTML(node.step_name) + '</h3><span class="qa-node-state">' + statusText + '</span></div>' +
+            '</div>' +
+            '<div class="qa-node-body">' +
+              '<div class="qa-question"><span class="qa-label">先想一想</span><p>' + textBlock(node.scaffold_question) + '</p></div>' +
+              '<div class="qa-hints">' + hints + '</div>' +
+              (hintButtons ? '<div class="qa-hint-actions">' + hintButtons + '</div>' : '') +
+              '<div class="qa-thought">' +
+                '<label>写下你的思路</label>' +
+                '<textarea class="input" data-thought maxlength="1200" placeholder="不要求完整，先写出你想到的第一步、依据或还卡住的地方……">' + CH.escapeHTML(progress.thought) + '</textarea>' +
+                '<div class="form-actions"><button type="button" class="btn btn-secondary btn-sm" data-act="eval">提交思路，请 AI 点评</button><span class="small muted">先写再问，提示才更有用。</span></div>' +
+              '</div>' +
+              feedback +
+              revealed +
+              '<div class="qa-node-nav">' +
+                '<button type="button" class="btn btn-primary btn-sm" data-act="mastered">我讲明白了</button>' +
+                '<button type="button" class="btn btn-ghost btn-sm" data-act="stuck">还卡着</button>' +
+                '<button type="button" class="btn btn-ghost btn-sm" data-act="reveal">查看规范解析</button>' +
+              '</div>' +
+            '</div>' +
+          '</article>';
+        }).join('');
+      }
+
+      function updateHistoryOnly() {
+        if (!state.historyId) return;
+        var entries = readHistory();
+        var found = false;
+        entries.forEach(function (entry) {
+          if (entry.id === state.historyId) {
+            entry.topic = state.topic;
+            entry.progress = state.progress;
+            entry.updatedAt = new Date().toISOString();
+            found = true;
+          }
+        });
+        if (found) writeHistory(entries);
+      }
+
+      function readHistory() {
+        try {
+          var raw = localStorage.getItem(HISTORY_KEY);
+          var parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function writeHistory(entries) {
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+        } catch (error) {
+          CH.toast('答疑记录保存失败，可能是浏览器存储空间已满。', 'warning');
+        }
+      }
+
+      function saveHistory() {
+        if (!state.topic) return;
+        var entries = readHistory();
+        var now = new Date().toISOString();
+        var entry = {
+          id: 'qa_' + Date.now().toString(36),
+          userId: user.id,
+          userName: user.name,
+          createdAt: now,
+          updatedAt: now,
+          title: state.topic.title,
+          mode: state.topic.mode,
+          core_goal: state.topic.core_goal,
+          demo: Boolean(state.topic.demo),
+          topic: state.topic,
+          progress: state.progress
+        };
+        state.historyId = entry.id;
+        entries.unshift(entry);
+        writeHistory(entries);
+        renderHistory();
+      }
+
+      function renderHistory() {
+        var entries = readHistory().filter(function (entry) {
+          return entry && entry.userId === user.id && entry.topic && Array.isArray(entry.topic.nodes);
+        }).sort(function (a, b) {
+          return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+        });
+        els.clearHistory.hidden = entries.length === 0;
+        if (!entries.length) {
+          els.historyBody.innerHTML = '<div class="qa-empty-small">还没有答疑记录。完成一次拆解后，这里会自动保存。</div>';
+          els.recent.innerHTML = '<div class="qa-empty-small">还没有记录。</div>';
+          return;
+        }
+        var html = entries.map(function (entry) {
+          var count = entry.topic.nodes.length;
+          var mastered = 0;
+          var progress = entry.progress || {};
+          entry.topic.nodes.forEach(function (node) {
+            var item = progress[String(node.id)] || progress[node.id];
+            if (item && item.mastered) mastered += 1;
+          });
+          return '<button type="button" class="qa-history-item" data-history="' + CH.escapeHTML(entry.id) + '">' +
+            '<div><strong>' + CH.escapeHTML(CH.truncate(entry.title, 36)) + '</strong><span>' + CH.escapeHTML(modeLabel(entry.mode)) + ' · ' + mastered + '/' + count + ' 步已掌握 · ' + CH.formatDate(entry.updatedAt || entry.createdAt, true) + '</span></div>' +
+            '<span class="qa-history-go">载入 →</span>' +
+            '</button>';
+        }).join('');
+        els.historyBody.innerHTML = html;
+        els.recent.innerHTML = entries.slice(0, 3).map(function (entry) {
+          return '<button type="button" class="qa-recent-item" data-history="' + CH.escapeHTML(entry.id) + '"><strong>' + CH.escapeHTML(CH.truncate(entry.title, 24)) + '</strong><span>' + CH.escapeHTML(modeLabel(entry.mode)) + ' · ' + CH.formatDate(entry.updatedAt || entry.createdAt, true) + '</span></button>';
+        }).join('');
+      }
+
+      function applyTopic(topic, options) {
+        state.topic = normalizeTopic(topic, topic.mode || state.mode);
+        state.topic.demo = Boolean(options && options.demo);
+        state.topic.demoReason = options && options.reason ? options.reason : '';
+        if (!state.topic.offline_variant) {
+          state.topic.offline_variant = {
+            question: '请用一句话复述“' + state.topic.title + '”中最关键的一步，并说明理由。',
+            options: ['先写结论，再补依据', '先找条件与守恒关系，再列式', '直接套公式，不检查单位'],
+            answer: 'B',
+            analysis: '化学题应先回到条件与守恒关系，再列式；单位和反应条件也要同步检查。',
+            target_skill: '回到条件与守恒'
+          };
+        }
+        state.progress = {};
+        state.variant = null;
+        els.variantSection.hidden = true;
+        els.welcome.hidden = true;
+        els.result.hidden = false;
+        els.title.textContent = state.topic.title;
+        els.goal.textContent = state.topic.core_goal;
+        els.modeTag.textContent = '题型 · ' + modeLabel(state.topic.mode);
+        els.demoTAG.textContent = state.topic.demo ? '演示示例' : '真实模型拆解';
+        els.demoTAG.className = state.topic.demo ? 'tag tag-amber' : 'tag tag-green';
+        renderTags();
+        renderNodes();
+        updateStats();
+        saveHistory();
+      }
+
+      function resetWorkspace(keepInput) {
+        state.topic = null;
+        state.progress = {};
+        state.variant = null;
+        state.historyId = '';
+        els.result.hidden = true;
+        els.variantSection.hidden = true;
+        els.welcome.hidden = false;
+        els.nodes.innerHTML = '';
+        els.title.textContent = '题目拆解';
+        els.goal.textContent = '';
+        updateStats();
+        if (!keepInput) {
+          els.text.value = '';
+          state.images = [];
+          renderThumbs();
+          setMode('auto');
+          hideStatus();
+          els.inline.textContent = '';
+        }
+      }
+
+      async function startAnalysis() {
+        if (state.busy) return;
+        var text = els.text.value.trim();
+        if (!text && !state.images.length) {
+          CH.toast('请先粘贴题目，或上传一张题目图片。', 'warning');
+          els.text.focus();
+          return;
+        }
+        setBusy(true);
+        hideStatus();
+        els.inline.textContent = '';
+        var settings = CH.getSettings();
+        var demoReason = '';
+        var demo = false;
+        var topic = null;
+        if (!settings.apiKey || settings.forceDemo) {
+          demo = true;
+          demoReason = settings.forceDemo ? '设置页已开启“强制演示模式”。' : '当前未配置 API Key。';
+          showStatus('info', '<strong>正在准备演示示例…</strong> 演示模式不会把题目发送到网络。');
+          await delay(450);
+          topic = clone(pickDemo(text, state.mode));
+        } else {
+          showStatus('info', '<strong>正在请求模型…</strong> 题目文字与图片会发送到 ' + CH.escapeHTML(settings.model) + '，请稍候。');
+          try {
+            topic = await requestTopic(text, state.mode, state.images);
+          } catch (error) {
+            demo = true;
+            demoReason = (error && error.message) ? error.message : '模型调用失败。';
+            topic = clone(pickDemo(text, state.mode));
+          }
+        }
+        applyTopic(topic, { demo: demo, reason: demoReason });
+        if (demo) {
+          var imageNote = state.images.length ? ' 你上传的图片没有被真正识别；' : '';
+          showStatus('warning', '<strong>这次使用的是示例题，不是真实识别结果。</strong> 原因：' + CH.escapeHTML(demoReason) + imageNote + ' 以下是「' + CH.escapeHTML(state.topic.title) + '」的拆解，可继续体验完整流程。配置 Key 后可在设置页测试连接。');
+        } else {
+          showStatus('success', '<strong>拆解完成。</strong> 已用 ' + CH.escapeHTML(settings.model) + ' 生成 3—6 个步骤。请先写自己的思路，再逐层取提示；AI 内容请以教师讲评为准。');
+        }
+        setBusy(false);
+        els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function bindNodeEvents() {
+        els.nodes.addEventListener('click', function (event) {
+          var button = event.target.closest('button[data-act]');
+          if (!button) return;
+          var nodeEl = button.closest('.qa-node');
+          if (!nodeEl) return;
+          var index = Number(nodeEl.getAttribute('data-index'));
+          var node = state.topic && state.topic.nodes[index];
+          if (!node) return;
+          var action = button.getAttribute('data-act');
+          var progress = getProgress(node.id);
+          if (action === 'hint1') {
+            progress.hint1 = true;
+            renderNodes();
+            updateStats();
+            updateHistoryOnly();
+            return;
+          }
+          if (action === 'hint2') {
+            progress.hint1 = true;
+            progress.hint2 = true;
+            renderNodes();
+            updateStats();
+            updateHistoryOnly();
+            return;
+          }
+          if (action === 'reveal') {
+            progress.revealed = true;
+            renderNodes();
+            updateStats();
+            updateHistoryOnly();
+            return;
+          }
+          if (action === 'mastered') {
+            progress.mastered = true;
+            progress.stuck = false;
+            renderNodes();
+            updateStats();
+            updateHistoryOnly();
+            CH.toast('已记录：这一步你讲明白了。', 'success');
+            return;
+          }
+          if (action === 'stuck') {
+            progress.stuck = true;
+            progress.hint1 = true;
+            renderNodes();
+            updateStats();
+            updateHistoryOnly();
+            CH.toast('先看方向提示，再写一句你能想到的第一步。', 'info');
+            return;
+          }
+          if (action === 'eval') {
+            submitThought(index, node, button);
+          }
+        });
+
+        els.nodes.addEventListener('input', function (event) {
+          var textarea = event.target.closest('[data-thought]');
+          if (!textarea) return;
+          var nodeEl = textarea.closest('.qa-node');
+          if (!nodeEl || !state.topic) return;
+          var node = state.topic.nodes[Number(nodeEl.getAttribute('data-index'))];
+          if (!node) return;
+          getProgress(node.id).thought = textarea.value;
+          updateHistoryOnly();
+        });
+      }
+
+      async function submitThought(index, node, button) {
+        var nodeEl = els.nodes.querySelector('.qa-node[data-index="' + index + '"]');
+        if (!nodeEl) return;
+        var textarea = nodeEl.querySelector('[data-thought]');
+        var thought = textarea ? textarea.value.trim() : '';
+        var progress = getProgress(node.id);
+        progress.thought = thought;
+        if (!thought) {
+          CH.toast('先写一句你的思路，再请助手点评。', 'warning');
+          if (textarea) textarea.focus();
+          return;
+        }
+        if (button.disabled) return;
+        button.disabled = true;
+        button.textContent = '点评中…';
+        var settings = CH.getSettings();
+        var feedback;
+        if (!settings.apiKey || settings.forceDemo || state.topic.demo) {
+          await delay(450);
+          feedback = mockFeedback(node, thought);
+        } else {
+          try {
+            feedback = await requestFeedback(node, thought);
+          } catch (error) {
+            feedback = mockFeedback(node, thought);
+            feedback.comment = '真实点评调用失败，已改用本地演示点评。' + feedback.comment;
+            CH.toast('AI 点评失败，已使用本地点评。', 'warning');
+          }
+        }
+        progress.feedback = feedback;
+        renderNodes();
+        updateStats();
+        updateHistoryOnly();
+      }
+
+      function normalizeAnswer(value, options) {
+        var answer = String(value || '').trim();
+        var letterMatch = answer.match(/^([A-H])/i);
+        if (letterMatch) return letterMatch[1].toUpperCase();
+        for (var i = 0; i < options.length; i += 1) {
+          var text = String(options[i] || '').trim();
+          if (text === answer || text.indexOf(answer) >= 0 || answer.indexOf(text) >= 0) {
+            return 'ABCDEFGH'[i] || '';
+          }
+        }
+        return 'A';
+      }
+
+      function optionText(value) {
+        return String(value || '').replace(/^[A-H][\.\、\:：]\s*/i, '').trim();
+      }
+
+      function renderVariant(variant) {
+        var options = variant.options || [];
+        var answerLetter = normalizeAnswer(variant.answer, options);
+        els.variantSkill.textContent = variant.target_skill || '变式训练';
+        els.variantBody.innerHTML = '<div class="qa-variant-head"><h3>' + textBlock(variant.question) + '</h3><span class="tag tag-amber">单选 · 点击选项判分</span></div>' +
+          '<div class="qa-options" id="qaOptions">' + options.map(function (option, index) {
+            var letter = 'ABCDEFGH'[index];
+            return '<button type="button" class="qa-option" data-opt="' + letter + '"><b>' + letter + '</b><span>' + CH.escapeHTML(optionText(option)) + '</span></button>';
+          }).join('') + '</div>' +
+          '<div class="qa-variant-result" id="qaVariantResult" hidden></div>';
+        var optionBox = document.getElementById('qaOptions');
+        var resultBox = document.getElementById('qaVariantResult');
+        optionBox.addEventListener('click', function (event) {
+          var button = event.target.closest('.qa-option');
+          if (!button || optionBox.getAttribute('data-answered') === 'true') return;
+          optionBox.setAttribute('data-answered', 'true');
+          var selected = button.getAttribute('data-opt');
+          var optionButtons = optionBox.querySelectorAll('.qa-option');
+          for (var i = 0; i < optionButtons.length; i += 1) {
+            var current = optionButtons[i];
+            var letter = current.getAttribute('data-opt');
+            current.disabled = true;
+            if (letter === answerLetter) current.classList.add('is-correct');
+            if (letter === selected && letter !== answerLetter) current.classList.add('is-wrong');
+          }
+          var correct = selected === answerLetter;
+          resultBox.hidden = false;
+          resultBox.innerHTML = '<div class="alert ' + (correct ? 'alert-success' : 'alert-warning') + '" style="margin:0;"><span class="alert-icon">' + (correct ? '✓' : '!') + '</span><div><strong>' + (correct ? '判断正确。' : '再核对一次。') + '</strong> 正确答案是 ' + answerLetter + '。' + textBlock(variant.analysis) + '</div></div>';
+        });
+        els.variantSection.hidden = false;
+        els.variantSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      async function generateVariant() {
+        if (!state.topic) return;
+        els.generateVariant.disabled = true;
+        els.generateVariant.textContent = '生成中…';
+        var settings = CH.getSettings();
+        var weakNodes = state.topic.nodes.filter(function (node) {
+          var progress = getProgress(node.id);
+          return !progress.mastered || progress.stuck;
+        }).map(function (node) { return node.step_name; });
+        var variant;
+        if (state.topic.demo || !settings.apiKey || settings.forceDemo) {
+          await delay(400);
+          variant = state.topic.offline_variant || {
+            question: '请用一句话复述“' + state.topic.title + '”中最关键的一步，并说明理由。',
+            options: ['先写结论，再补依据', '先找条件与守恒关系，再列式', '直接套公式，不检查单位'],
+            answer: 'B',
+            analysis: '先回到条件与守恒关系，再列式，是化学计算更稳妥的顺序。',
+            target_skill: '回到条件与守恒'
+          };
+          renderVariant(variant);
+          CH.toast('已载入演示变式；配置 Key 后可生成新的靶向题。', 'info');
+        } else {
+          try {
+            variant = await requestVariant(state.topic, weakNodes);
+            renderVariant(variant);
+          } catch (error) {
+            variant = state.topic.offline_variant;
+            if (variant) {
+              renderVariant(variant);
+              CH.toast('变式生成失败，已使用本题内置变式：' + (error.message || '未知错误'), 'warning');
+            } else {
+              CH.toast('变式生成失败：' + (error.message || '未知错误'), 'error');
+            }
+          }
+        }
+        els.generateVariant.disabled = false;
+        els.generateVariant.textContent = '生成靶向变式';
+      }
+
+      function loadHistory(id) {
+        var entry = readHistory().filter(function (item) { return item.id === id; })[0];
+        if (!entry || !entry.topic) return;
+        state.topic = entry.topic;
+        state.progress = entry.progress || {};
+        state.historyId = entry.id;
+        state.variant = null;
+        els.variantSection.hidden = true;
+        els.welcome.hidden = true;
+        els.result.hidden = false;
+        els.title.textContent = state.topic.title;
+        els.goal.textContent = state.topic.core_goal;
+        els.modeTag.textContent = '题型 · ' + modeLabel(state.topic.mode);
+        els.demoTAG.textContent = state.topic.demo ? '演示示例' : '真实模型拆解';
+        els.demoTAG.className = state.topic.demo ? 'tag tag-amber' : 'tag tag-green';
+        renderTags();
+        renderNodes();
+        updateStats();
+        hideStatus();
+        els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        CH.toast('已载入上次的答疑记录，可继续思考。', 'success');
+      }
+
+      function clearHistory() {
+        CH.confirmAction({
+          title: '清空全部答疑记录？',
+          subtitle: '只影响当前账号的本地记录',
+          message: '记录删除后不能恢复；当前正在看的题目不会被关闭。',
+          confirmText: '确认清空',
+          danger: true
+        }).then(function (ok) {
+          if (!ok) return;
+          var remain = readHistory().filter(function (entry) { return entry.userId !== user.id; });
+          writeHistory(remain);
+          state.historyId = '';
+          renderHistory();
+          CH.toast('答疑记录已清空。', 'success');
+        });
+      }
+
+      function bindUpload() {
+        els.drop.addEventListener('click', function (event) {
+          if (event.target === els.file) return;
+          els.file.click();
+        });
+        els.drop.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            els.file.click();
+          }
+        });
+        els.file.addEventListener('change', function () {
+          addFiles(els.file.files);
+          els.file.value = '';
+        });
+        ['dragenter', 'dragover'].forEach(function (name) {
+          els.drop.addEventListener(name, function (event) {
+            event.preventDefault();
+            els.drop.classList.add('is-dragging');
+          });
+        });
+        ['dragleave', 'drop'].forEach(function (name) {
+          els.drop.addEventListener(name, function (event) {
+            event.preventDefault();
+            els.drop.classList.remove('is-dragging');
+          });
+        });
+        els.drop.addEventListener('drop', function (event) {
+          addFiles(event.dataTransfer && event.dataTransfer.files);
+        });
+        els.thumbs.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-remove]');
+          if (!button) return;
+          state.images.splice(Number(button.getAttribute('data-remove')), 1);
+          renderThumbs();
+        });
+      }
+
+      function bindExamples() {
+        document.querySelectorAll('[data-example]').forEach(function (button) {
+          button.addEventListener('click', function () {
+            var key = button.getAttribute('data-example');
+            var demo = DEMO_TOPICS[key];
+            if (!demo) return;
+            els.text.value = demo.raw_text;
+            setMode(demo.mode);
+            els.inline.textContent = '已载入示例题，点击“开始拆解”查看完整流程。';
+            CH.toast('示例题已载入。', 'success');
+            els.text.focus();
+          });
+        });
+      }
+
+      function bindHistory() {
+        [els.historyBody, els.recent].forEach(function (box) {
+          box.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-history]');
+            if (button) loadHistory(button.getAttribute('data-history'));
+          });
+        });
+        els.clearHistory.addEventListener('click', clearHistory);
+      }
+
+      function init() {
+        var isTeacher = user.role === 'teacher';
+        document.getElementById('homeworkCta').href = isTeacher ? 'teacher-homework.html' : 'student-homework.html';
+        document.getElementById('modelSettingsCta').href = 'settings.html';
+        renderModeTabs();
+        renderModel();
+        renderThumbs();
+        renderHistory();
+        updateStats();
+        bindUpload();
+        bindExamples();
+        bindNodeEvents();
+        bindHistory();
+        els.analyze.addEventListener('click', startAnalysis);
+        els.reset.addEventListener('click', function () {
+          resetWorkspace(false);
+          CH.toast('输入已清空。', 'success');
+        });
+        els.resetResult.addEventListener('click', function () {
+          resetWorkspace(false);
+          els.text.focus();
+          CH.toast('已回到提问区，可以换一道题。', 'success');
+        });
+        els.generateVariant.addEventListener('click', generateVariant);
+        els.modeTabs.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-mode]');
+          if (button) setMode(button.getAttribute('data-mode'));
+        });
+        window.addEventListener('storage', function (event) {
+          if (event.key === 'chemhub_settings_v1') renderModel();
+        });
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

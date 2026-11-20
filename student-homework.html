@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="学生作业页：选择批次提交作业、查看待批改状态、浏览自己的批改结果与匿名优秀答案墙。">
+  <title>我的作业 · 知行化学</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div id="site-header"></div>
+
+  <main class="page-shell" id="main">
+    <div class="page-head">
+      <div>
+        <nav class="breadcrumbs" aria-label="面包屑"><a href="student-dashboard.html">学生工作台</a><span>/</span><span>作业与评价</span></nav>
+        <h1>我的作业</h1>
+        <p><span data-user-name>同学</span>，选择作业批次并上传作业照片即可提交。提交后显示“待批改”，教师完成 AI 批改与复核后，你可以在这里查看等级、三维度评语和逐题解析。</p>
+      </div>
+      <div class="page-head-actions">
+        <a class="btn btn-ghost btn-sm" href="excellent-answers.html">优秀答案墙</a>
+        <a class="btn btn-ghost btn-sm" href="student-profile.html">我的档案</a>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-icon">✓</span><div><strong id="statGraded">0</strong><small>已批改</small></div></div>
+      <div class="stat-card"><span class="stat-icon">◷</span><div><strong id="statPending">0</strong><small>待批改</small></div></div>
+      <div class="stat-card"><span class="stat-icon">◎</span><div><strong id="statAverage">—</strong><small>平均分</small></div></div>
+      <div class="stat-card"><span class="stat-icon">◈</span><div><strong id="statWeak">0</strong><small>薄弱点标签</small></div></div>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:18px;">
+      <div class="span-2">
+        <section class="card" id="submitPanel">
+          <div class="card-header">
+            <div><h2>提交作业</h2><p>图片会先在本地压缩用于预览；提交时仅保存文件名与自述，原始照片不会写入浏览器存储。</p></div>
+            <span class="tag tag-blue">学生端</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label for="batchSelect">选择作业批次</label>
+                <select class="input" id="batchSelect"></select>
+              </div>
+              <div class="field">
+                <label for="fileInputLabel">作业文件</label>
+                <div class="upload-zone upload-zone-compact" id="uploadZone" role="button" tabindex="0">
+                  <span class="upload-icon">⇪</span>
+                  <h3>点击选择或拖入作业照片</h3>
+                  <p>JPG / PNG 图片；PDF 仅记录文件名。若暂无照片，也可直接提交一次演示作业。</p>
+                  <input type="file" id="fileInput" accept="image/jpeg,image/png,application/pdf" hidden>
+                </div>
+              </div>
+            </div>
+            <div id="filePreview"></div>
+            <div class="field" style="margin-top:14px;">
+              <label for="selfReport">我的自述（选填）</label>
+              <textarea class="input" id="selfReport" rows="3" placeholder="例如：这次重点检查了离子方程式的拆分，计算题写出了完整步骤；第 4 题不太确定。"></textarea>
+              <small class="field-hint">写清楚自己的思路和疑惑，有助于教师和 AI 关注你的真实问题。</small>
+            </div>
+            <div class="alert alert-info">
+              <span class="alert-icon">i</span>
+              <div>提交后状态为“待批改”。教师完成批改后，系统会自动更新你的档案、等级趋势和薄弱点标签。请勿上传包含真实姓名、学号等隐私信息的图片。</div>
+            </div>
+            <div class="form-actions" style="margin-top:14px;">
+              <button class="btn btn-primary" type="button" id="submitHomework">提交作业</button>
+              <a class="btn btn-ghost" href="excellent-answers.html">先看看优秀答案</a>
+            </div>
+            <p class="small muted" style="margin:10px 0 0;">未选择文件时，将以“演示提交”记录，便于课堂演示完整流程。</p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <div class="card-header"><div><h2>我的提交记录</h2><p>按提交时间倒序排列。</p></div><span class="tag tag-gray" id="recordCount">0 份</span></div>
+          <div class="card-body" id="recordList"><p class="small muted" style="margin:0;">正在读取提交记录。</p></div>
+        </section>
+        <section class="card">
+          <div class="card-header"><div><h2>我的薄弱点</h2><p>根据已批改作业自动归纳。</p></div><a class="section-link" href="student-profile.html">档案 →</a></div>
+          <div class="card-body" id="weakBox"><p class="small muted" style="margin:0;">暂无批改记录。</p></div>
+        </section>
+      </aside>
+    </div>
+
+    <section class="section" id="resultSection">
+      <div class="section-head">
+        <div><h2>批改结果与逐题解析</h2><p>展示当前选择的提交；已批改的作业会包含等级、三维度评语、整体评价与逐题解析。</p></div>
+        <a class="section-link" href="student-profile.html">查看成长档案 →</a>
+      </div>
+      <div id="resultBox">
+        <div class="card"><div class="empty-state"><div class="empty-icon">✓</div><h3>还没有选择作业</h3><p>提交一份作业后，等待教师批改；也可以点击右侧记录查看已有结果。</p></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><h2>优秀答案墙</h2><p>匿名展示教师标记的优秀作答，学习思路与表达，不要直接照抄。</p></div>
+        <a class="section-link" href="excellent-answers.html">进入完整答案墙 →</a>
+      </div>
+      <div class="grid grid-2" id="excellentPreview"></div>
+    </section>
+
+    <section class="section">
+      <div class="alert alert-info"><span class="alert-icon">i</span><div><strong>隐私与学术诚信：</strong>本页数据仅保存在当前浏览器，不会上传到服务器。AIGC 评语用于辅助学习，最终成绩与评价以教师复核为准。</div></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="common.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var CH = window.ChemHub;
+      var user = CH.setupPage({ role: 'student', active: 'homework', title: '我的作业 · 知行化学' });
+      if (!user) return;
+      var student = CH.getStudentByUserId(user.id);
+      if (!student) {
+        document.getElementById('submitPanel').innerHTML = '<div class="empty-state"><div class="empty-icon">!</div><h3>未找到学生档案</h3><p>请退出后重新注册学生账号，或在设置页恢复演示数据。</p><a class="btn btn-secondary btn-sm" href="settings.html">前往设置</a></div>';
+        return;
+      }
+
+      var state = { batchId: CH.BATCHES[0] ? CH.BATCHES[0].id : '', file: null, fileKind: '', dataUrl: '', submitting: false, viewing: null, token: 0 };
+      var batchSelect = document.getElementById('batchSelect');
+      var fileInput = document.getElementById('fileInput');
+      var uploadZone = document.getElementById('uploadZone');
+      var previewBox = document.getElementById('filePreview');
+      var resultBox = document.getElementById('resultBox');
+      var submitButton = document.getElementById('submitHomework');
+
+      function mySubmissions() {
+        return CH.getSubmissions().filter(function (item) { return item.studentId === student.studentId; }).sort(function (a, b) { return new Date(b.submittedAt) - new Date(a.submittedAt); });
+      }
+
+      function renderStats() {
+        var list = mySubmissions();
+        var graded = list.filter(function (item) { return item.status === 'graded' && item.result; });
+        var stats = CH.getStudentStats(student.studentId);
+        document.getElementById('statGraded').textContent = graded.length;
+        document.getElementById('statPending').textContent = list.filter(function (item) { return item.status === 'pending'; }).length;
+        document.getElementById('statAverage').textContent = stats.average ? stats.average : '—';
+        document.getElementById('statWeak').textContent = student.weakTags ? student.weakTags.length : 0;
+      }
+
+      function initBatches() {
+        batchSelect.innerHTML = CH.BATCHES.map(function (item) {
+          return '<option value="' + CH.escapeHTML(item.id) + '">' + CH.escapeHTML(item.name) + ' · 截止 ' + CH.escapeHTML(item.due) + '</option>';
+        }).join('');
+        batchSelect.value = state.batchId;
+      }
+
+      function renderPreview() {
+        previewBox.innerHTML = '';
+        if (!state.file) return;
+        var thumb = state.dataUrl ? '<img src="' + state.dataUrl + '" alt="作业预览">' : '<div class="file-placeholder">PDF</div>';
+        previewBox.innerHTML = '<div class="file-preview">' + thumb + '<div class="file-info"><strong>' + CH.escapeHTML(state.file.name) + '</strong><small>' + (state.fileKind === 'pdf' ? 'PDF 文件 · 仅记录文件名' : '图片已压缩，仅用于本地预览') + '</small></div><button class="btn btn-ghost btn-sm file-remove" type="button" data-remove-file>移除</button></div>';
+      }
+
+      previewBox.addEventListener('click', function (event) {
+        if (!event.target.closest('[data-remove-file]')) return;
+        state.file = null;
+        state.fileKind = '';
+        state.dataUrl = '';
+        fileInput.value = '';
+        renderPreview();
+      });
+
+      function acceptFile(file) {
+        if (!file) return;
+        var name = String(file.name || '');
+        var isImage = /^image\/(jpeg|png|webp)$/i.test(file.type) || /\.(jpe?g|png)$/i.test(name);
+        var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(name);
+        if (!isImage && !isPdf) { CH.toast('仅支持 JPG / PNG 图片或 PDF 文件。', 'error'); return; }
+        if (file.size > 20 * 1024 * 1024) { CH.toast('文件超过 20MB，请压缩后重试。', 'error'); return; }
+        state.file = file;
+        state.fileKind = isPdf ? 'pdf' : 'image';
+        state.dataUrl = '';
+        var token = ++state.token;
+        renderPreview();
+        if (isPdf) { CH.toast('PDF 已选择，提交后仅记录文件名。', 'info'); return; }
+        CH.compressImage(file, 1400, 0.82).then(function (out) {
+          if (token !== state.token) return;
+          state.dataUrl = out.dataUrl;
+          renderPreview();
+        }).catch(function (error) {
+          if (token !== state.token) return;
+          state.file = null;
+          state.fileKind = '';
+          renderPreview();
+          CH.toast(error.message || '图片读取失败。', 'error');
+        });
+      }
+
+      uploadZone.addEventListener('click', function (event) {
+        if (event.target === fileInput) return;
+        fileInput.click();
+      });
+      uploadZone.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileInput.click(); }
+      });
+      fileInput.addEventListener('click', function (event) { event.stopPropagation(); });
+      fileInput.addEventListener('change', function () { acceptFile(fileInput.files && fileInput.files[0]); });
+      ['dragenter', 'dragover'].forEach(function (name) {
+        uploadZone.addEventListener(name, function (event) { event.preventDefault(); uploadZone.classList.add('is-dragover'); });
+      });
+      ['dragleave', 'drop'].forEach(function (name) {
+        uploadZone.addEventListener(name, function (event) { event.preventDefault(); uploadZone.classList.remove('is-dragover'); });
+      });
+      uploadZone.addEventListener('drop', function (event) {
+        acceptFile(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]);
+      });
+
+      function renderRecords() {
+        var list = mySubmissions();
+        document.getElementById('recordCount').textContent = list.length + ' 份';
+        var box = document.getElementById('recordList');
+        if (!list.length) {
+          box.innerHTML = '<div class="empty-state" style="padding:18px 10px;"><div class="empty-icon">◷</div><h3>还没有提交</h3><p>选择批次后提交第一份作业。</p></div>';
+          return;
+        }
+        box.innerHTML = '<div class="pending-list">' + list.slice(0, 6).map(function (item) {
+          var badge = item.status === 'graded' && item.result
+            ? '<span class="grade-badge ' + CH.gradeClass(item.result.grade) + '">' + CH.escapeHTML(item.result.grade) + '</span>'
+            : '<span class="tag tag-amber">待批改</span>';
+          return '<button class="pending-item" type="button" style="width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);" data-view="' + CH.escapeHTML(item.id) + '"><div class="pending-main"><strong>' + CH.escapeHTML(item.batchName) + '</strong><p>' + CH.formatDate(item.submittedAt, true) + ' · ' + (item.status === 'graded' ? '已批改' : '等待教师批改') + '</p></div>' + badge + '</button>';
+        }).join('') + '</div>';
+      }
+
+      document.getElementById('recordList').addEventListener('click', function (event) {
+        var button = event.target.closest('[data-view]');
+        if (!button) return;
+        var submission = CH.getSubmissionById(button.getAttribute('data-view'));
+        if (!submission || submission.studentId !== student.studentId) return;
+        state.viewing = submission;
+        renderResult(submission);
+        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      function renderWeakTags() {
+        var stats = CH.getStudentStats(student.studentId);
+        var tags = student.weakTags || [];
+        var box = document.getElementById('weakBox');
+        if (!tags.length) {
+          box.innerHTML = '<p class="small muted" style="margin:0;">完成一次批改后，这里会自动归纳薄弱点。</p>';
+          return;
+        }
+        box.innerHTML = '<div class="tag-list">' + tags.map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join('') + '</div><p class="small muted" style="margin:10px 0 0;">平均分 ' + (stats.average || '—') + '，已批改 ' + stats.graded + ' 份。</p>';
+      }
+
+      function dimensionHTML(label, data) {
+        var score = Math.max(0, Math.min(100, Number(data && data.score) || 0));
+        return '<div class="dimension-card"><div class="dimension-top"><strong>' + label + '</strong><span>' + score + '</span></div><div class="dimension-bar"><span style="width:' + score + '%"></span></div><p>' + CH.escapeHTML((data && data.comment) || '暂无评语。') + '</p></div>';
+      }
+
+      function pendingHTML(submission) {
+        return '<div class="result-shell"><div class="result-banner"><div><h2>' + CH.escapeHTML(submission.batchName) + '</h2><p>' + CH.escapeHTML(submission.unit || '') + ' · 提交于 ' + CH.formatDate(submission.submittedAt, true) + '</p><div class="result-meta"><span class="tag tag-amber">待批改</span><span class="tag tag-gray">已进入教师队列</span></div></div><div class="score-panel"><div class="score-ring" style="background:#e8f0f6"><div><strong>—</strong><small>等待批改</small></div></div></div></div><div class="alert alert-warning"><span class="alert-icon">◷</span><div><strong>已提交成功。</strong>教师完成 AI 批改与人工复核后，这里会显示等级、三维度评语和逐题解析；档案也会同步更新。你可以先浏览优秀答案墙。</div></div>' + (submission.selfReport ? '<div class="overall-box"><strong>我的自述</strong>' + CH.escapeHTML(submission.selfReport) + '</div>' : '') + '</div>';
+      }
+
+      function renderResult(submission) {
+        if (!submission || submission.studentId !== student.studentId) {
+          CH.toast('未找到这份作业，或它不属于当前账号。', 'error');
+          return;
+        }
+        state.viewing = submission;
+        if (submission.status !== 'graded' || !submission.result) {
+          resultBox.innerHTML = pendingHTML(submission);
+          return;
+        }
+        var data = submission.result;
+        var score = Math.max(0, Math.min(100, Number(data.score) || 0));
+        var grade = data.grade || CH.gradeFromScore(score);
+        var dims = data.dimensions || {};
+        var questions = Array.isArray(data.questions) ? data.questions : [];
+        var weakTags = Array.isArray(data.weakTags) ? data.weakTags : [];
+        var sourceText = data.isMock ? '演示批改数据（教师可复核）' : ('DeepSeek 多模态 · ' + (data.model || CH.getSettings().model));
+        var questionsHTML = questions.map(function (q) {
+          var errorTag = q.errorType ? '<span class="tag tag-red">' + CH.escapeHTML(q.errorType) + '</span>' : '';
+          var weakTag = q.tag ? '<span class="tag tag-weak">' + CH.escapeHTML(q.tag) + '</span>' : '';
+          return '<article class="question-card"><div class="question-top"><span class="question-no">' + CH.escapeHTML(String(q.no)) + '</span><div class="question-heading"><p class="question-text">' + CH.escapeHTML(q.question) + '</p><div class="question-badges"><span class="verdict ' + CH.verdictClass(q.verdict) + '">' + CH.escapeHTML(q.verdict) + '</span>' + errorTag + weakTag + '</div></div></div><div class="question-body"><div class="qa-block"><span class="qa-label">我的作答</span><p class="qa-text">' + CH.escapeHTML(q.studentAnswer) + '</p></div><div class="qa-block"><span class="qa-label">判定依据</span><p class="qa-text">' + CH.escapeHTML(q.reason) + '</p></div><div class="analysis-grid"><div class="analysis-block wrong-cause"><span class="qa-label">错因分析</span><p class="qa-text">' + CH.escapeHTML(q.reason) + '</p></div><div class="analysis-block correct-way"><span class="qa-label">正确思路</span><p class="qa-text">' + CH.escapeHTML(q.correctApproach) + '</p></div></div></div></article>';
+        }).join('');
+        resultBox.innerHTML = '<div class="result-shell"><div class="result-banner"><div><h2>' + CH.escapeHTML(submission.batchName) + '</h2><p>' + CH.escapeHTML(submission.unit || '') + ' · 批改于 ' + CH.formatDate(submission.gradedAt, true) + ' · ' + CH.escapeHTML(sourceText) + '</p><div class="result-meta"><span class="tag tag-blue">' + questions.length + ' 题解析</span><span class="tag tag-green">已同步我的档案</span><a class="tag tag-gray" href="student-profile.html">查看档案 →</a></div></div><div class="score-panel"><div class="score-ring" style="background:conic-gradient(var(--blue-600) 0 ' + score + '%, #e8f0f6 ' + score + '% 100%)"><div><strong>' + score + '</strong><small>综合得分</small></div></div><div class="score-copy"><span class="grade-badge ' + CH.gradeClass(grade) + '">' + CH.escapeHTML(grade) + '</span><p>等级 / 100 分制</p></div></div></div>' +
+          '<div class="dimension-grid">' + dimensionHTML('知识准确性', dims.accuracy) + dimensionHTML('思维完整性', dims.logic) + dimensionHTML('规范性', dims.normativity) + '</div>' +
+          '<div class="overall-box"><strong>教师 / AI 整体评价</strong>' + CH.escapeHTML(data.overall) + '</div>' +
+          '<div class="weak-tags"><span class="weak-label">本次薄弱点：</span>' + (weakTags.length ? weakTags.map(function (tag) { return '<span class="tag tag-weak">' + CH.escapeHTML(tag) + '</span>'; }).join('') : '<span class="tag tag-gray">本次未发现明显薄弱点</span>') + '</div>' +
+          '<div class="section-head" style="margin:4px 0 0;"><div><h2>逐题解析</h2><p>先看“错因分析”，再合上页面独立重做一遍，最后用“正确思路”检查。</p></div></div>' +
+          '<div class="question-list">' + (questionsHTML || '<div class="card"><div class="empty-state"><p>本次没有逐题解析。</p></div></div>') + '</div>' +
+          '<div class="alert alert-info"><span class="alert-icon">i</span><div>评语由 AIGC 辅助生成，教师已进行复核。若对手写识别或判定有疑问，请带着原卷找教师面批。</div></div></div>';
+      }
+
+      function renderExcellentPreview() {
+        var list = CH.getActiveExcellent().slice(0, 2);
+        var box = document.getElementById('excellentPreview');
+        if (!list.length) {
+          box.innerHTML = '<div class="card" style="grid-column:1/-1;"><div class="empty-state"><div class="empty-icon">★</div><h3>答案墙暂时为空</h3><p>教师标记优秀作答后，这里会出现匿名示范。</p></div></div>';
+          return;
+        }
+        box.innerHTML = list.map(function (item) {
+          return '<div class="excellent-card"><p class="quote">优秀答案 · 匿名展示</p><h3>' + CH.escapeHTML(CH.truncate(item.question, 56)) + '</h3><p class="answer">' + CH.escapeHTML(CH.truncate(item.answer, 130)) + '</p><div class="teacher-comment"><strong>教师评语：</strong>' + CH.escapeHTML(CH.truncate(item.comment, 86)) + '</div><div style="margin-top:10px;"><a class="section-link" href="excellent-answers.html">查看完整答案墙 →</a></div></div>';
+        }).join('');
+      }
+
+      submitButton.addEventListener('click', function () {
+        if (state.submitting) return;
+        state.submitting = true;
+        submitButton.disabled = true;
+        submitButton.textContent = '提交中…';
+        try {
+          var submission = CH.createSubmission({
+            studentId: student.studentId,
+            batchId: state.batchId,
+            selfReport: document.getElementById('selfReport').value.trim(),
+            fileName: state.file ? state.file.name : '演示提交（未上传图片）',
+            source: state.fileKind === 'pdf' ? 'pdf' : (state.file ? 'upload' : 'demo-submit'),
+            status: 'pending'
+          });
+          state.file = null;
+          state.fileKind = '';
+          state.dataUrl = '';
+          fileInput.value = '';
+          document.getElementById('selfReport').value = '';
+          renderPreview();
+          renderResult(submission);
+          renderStats();
+          renderRecords();
+          CH.toast('提交成功，状态为“待批改”。', 'success');
+          document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+          CH.toast(error.message || '提交失败，请重试。', 'error');
+        } finally {
+          state.submitting = false;
+          submitButton.disabled = false;
+          submitButton.textContent = '提交作业';
+        }
+      });
+
+      initBatches();
+      renderStats();
+      renderRecords();
+      renderWeakTags();
+      renderExcellentPreview();
+
+      var params = new URLSearchParams(location.search);
+      var sid = params.get('submission');
+      var batchId = params.get('batch');
+      if (batchId && CH.getBatch(batchId)) {
+        state.batchId = batchId;
+        batchSelect.value = batchId;
+      }
+      var requested = sid ? CH.getSubmissionById(sid) : null;
+      if (requested && requested.studentId === student.studentId) {
+        renderResult(requested);
+      } else {
+        var list = mySubmissions();
+        var graded = list.filter(function (item) { return item.status === 'graded' && item.result; });
+        if (graded.length) renderResult(graded[0]);
+        else if (list.length) renderResult(list[0]);
+      }
+    })();
+  </script>
+</body>
+</html>
